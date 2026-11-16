@@ -17,6 +17,7 @@ export default function Home() {
             <a href="/san-pham">Khám phá học liệu</a>
             <a href="#cach-hoc">Cách bắt đầu</a>
             <a href="#gioi-thieu">Về Bloomie</a>
+            <a href="/tai-khoan">Đăng nhập </a>
           </nav>
         </div>
       </header>
