@@ -1,3 +1,4 @@
+import Image from "next/image";
 const categories = [
   { icon: "📚", name: "Học liệu số", description: "Tài liệu giúp việc học dễ dàng hơn." },
   { icon: "🎬", name: "Video bài học", description: "Khám phá kiến thức qua từng bài học." },
@@ -43,7 +44,16 @@ export default function Home() {
             </a>
           </div>
           <div className="rounded-[40px] bg-[#e9f2df] p-12 text-center">
-            <div className="text-8xl" aria-hidden="true">🌱</div>
+            <div className="overflow-hidden rounded-[40px] bg-[#e9f2df] p-4">
+  <Image
+    src="/bloomie-banner.png"
+    alt="Bloomie — Học cùng lớn khôn"
+    width={1200}
+    height={1200}
+    sizes="(max-width: 767px) 100vw, 50vw"
+    className="h-auto w-full rounded-3xl"
+  />
+</div>
             <p className="mt-8 text-3xl font-bold">Một chút học hỏi mỗi ngày</p>
             <p className="mt-4 leading-7 text-slate-600">
               Từ những điều nhỏ bé, nuôi dưỡng những ý tưởng lớn.
