@@ -4,32 +4,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const products = [
-  {
-    id: "ghep-hinh-logic",
-    name: "Bộ ghép hình logic",
-    image: "/ghep-hinh-logic.png",
-  },
-  {
-    id: "bo-oc-van",
-    name: "Bộ ốc vặn",
-    image: "/bo-oc-van.png",
-  },
-  {
-    id: "the-tu-vung",
-    name: "Thẻ học từ vựng",
-    image: "/the-tu-vung.png",
-  },
-];
+import type { Product } from "../lib/products";
 
 type Cart = Record<string, number>;
 const storageKey = "bloomie-cart-v1";
 
-export default function Shop({ cartPage = false }: { cartPage?: boolean }) {
+export default function Shop({
+  products,
+  cartPage = false,
+}: {
+  products: Product[];
+  cartPage?: boolean;
+}) {
   const [cart, setCart] = useState<Cart>({});
   const [ready, setReady] = useState(false);
   const [message, setMessage] = useState("");
 
+  
   useEffect(() => {
     try {
       const saved: unknown = JSON.parse(
@@ -55,7 +46,7 @@ export default function Shop({ cartPage = false }: { cartPage?: boolean }) {
       setMessage("Không đọc được giỏ đã lưu. Bạn có thể tạo giỏ mới.");
     }
     setReady(true);
-  }, []);
+ }, [products]);
 
   function change(id: string, amount: number) {
     const next = { ...cart };
@@ -144,7 +135,7 @@ export default function Shop({ cartPage = false }: { cartPage?: boolean }) {
 
                 <div className="p-6">
                   <h2 className="text-2xl font-bold">{product.name}</h2>
-                  <p className="mt-4">Giá bán: đang cập nhật</p>
+                  <p className="mt-4">   Giá bán:{" "}   {product.price_vnd === null     ? "đang cập nhật"     : new Intl.NumberFormat("vi-VN", {         style: "currency",         currency: "VND",       }).format(product.price_vnd)} </p>
 
                   {cartPage ? (
                     <div className="mt-6">
