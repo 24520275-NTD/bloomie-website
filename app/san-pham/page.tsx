@@ -1,41 +1,40 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const products = [
   {
-    id: "bo-hoc-lieu-01",
-    name: "Bộ học liệu minh họa 01",
-    description:
-      "Vị trí dành cho phần giới thiệu ngắn của bộ học liệu đầu tiên.",
-    contents:
-      "Thông tin thành phần bộ sản phẩm, cách sử dụng và video đi kèm sẽ được cập nhật theo sản phẩm thật.",
-    icon: "📚",
-    background: "bg-[#e9f2df]",
+    id: "ghep-hinh-logic",
+    name: "Bộ ghép hình logic",
+    image: "/ghep-hinh-logic.png",
   },
   {
-    id: "bo-hoc-lieu-02",
-    name: "Bộ học liệu minh họa 02",
-    description:
-      "Vị trí dành cho phần giới thiệu ngắn của bộ học liệu thứ hai.",
-    contents:
-      "Thông tin đối tượng sử dụng và nội dung bộ học liệu sẽ được bổ sung sau khi có tài liệu sản phẩm.",
-    icon: "🎨",
-    background: "bg-[#f8ead9]",
+    id: "bo-oc-van",
+    name: "Bộ ốc vặn",
+    image: "/bo-oc-van.png",
+  },
+  {
+    id: "the-tu-vung",
+    name: "Thẻ học từ vựng",
+    image: "/the-tu-vung.png",
   },
 ];
 
 export default function ProductsPage() {
   return (
     <div className="min-h-screen bg-[#fffdf8] text-[#243c32]">
-      <header className="border-b border-green-100">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-6">
-          <Link
-            href="/"
-            className="text-3xl font-extrabold tracking-tight"
-          >
-            bloomie<span className="text-orange-400">.</span>
+      <header className="border-b border-green-100 bg-white">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5 px-6 py-4">
+          <Link href="/" aria-label="Bloomie — Trang chủ">
+            <Image
+              src="/bloomie-logo.png"
+              alt="Logo Bloomie"
+              width={160}
+              height={90}
+              className="h-20 w-40 object-contain"
+            />
           </Link>
 
-          <nav className="flex gap-6 text-sm font-medium">
+          <nav className="flex gap-6 text-sm font-semibold">
             <Link href="/">Trang chủ</Link>
             <Link href="/san-pham" aria-current="page">
               Sản phẩm
@@ -44,82 +43,75 @@ export default function ProductsPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-14">
+      <main className="mx-auto max-w-6xl px-6 py-12">
         <p className="text-sm font-bold tracking-widest text-green-700">
-          KHÁM PHÁ BLOOMIE
+          BLOOMIE — HỌC CÙNG LỚN KHÔN
         </p>
 
         <h1 className="mt-4 text-4xl font-extrabold">
-          Các bộ học liệu
+          Khám phá bộ học liệu
         </h1>
 
-        <p className="mt-5 max-w-2xl leading-8 text-slate-600">
-          Tìm hiểu thông tin bộ sản phẩm và nội dung học liệu đi kèm.
+        <p className="mt-5 leading-8 text-slate-600">
+          Tìm hiểu các bộ sản phẩm và học liệu của Bloomie.
         </p>
 
-        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-          Đây là danh mục minh họa để xây dựng giao diện.
-          Sản phẩm chưa mở bán, chưa có giá và chưa nhận thanh toán.
-        </div>
+        <p className="mt-5 rounded-2xl bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+          Website đang được hoàn thiện. Giá bán và thông tin chi tiết
+          đang cập nhật; hiện chưa nhận đặt hàng hoặc thanh toán.
+        </p>
 
-        <div className="mt-10 grid gap-8 md:grid-cols-2">
+        <div className="mt-10 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
             <article
               key={product.id}
               className="overflow-hidden rounded-3xl border border-green-100 bg-white"
             >
-              <div
-                className={`${product.background} flex h-56 items-center justify-center`}
-              >
-                <span className="text-7xl" aria-hidden="true">
-                  {product.icon}
-                </span>
+              <div className="relative aspect-square bg-[#f5f7ef]">
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                  className="object-contain p-4"
+                />
               </div>
 
-              <div className="p-7">
-                <p className="text-xs font-bold uppercase tracking-wider text-green-700">
-                  Sản phẩm minh họa
+              <div className="p-6">
+                <p className="text-xs font-bold tracking-widest text-green-700">
+                  BỘ SẢN PHẨM BLOOMIE
                 </p>
 
                 <h2 className="mt-3 text-2xl font-bold">
                   {product.name}
                 </h2>
 
-                <p className="mt-4 leading-7 text-slate-600">
-                  {product.description}
-                </p>
-
                 <p className="mt-5 font-semibold">
                   Giá bán: đang cập nhật
                 </p>
 
                 <details className="mt-6 border-t border-green-100 pt-5">
-                  <summary className="cursor-pointer font-semibold text-green-800">
-                    Xem thông tin bộ học liệu
+                  <summary className="cursor-pointer font-semibold">
+                    Xem ảnh sản phẩm
                   </summary>
-                  <p className="mt-4 leading-7 text-slate-600">
-                    {product.contents}
-                  </p>
+
+                  <a
+                    href={product.image}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-block text-green-700 underline"
+                  >
+                    Mở ảnh đầy đủ ↗
+                  </a>
                 </details>
               </div>
             </article>
           ))}
         </div>
-
-        <div className="mt-12 rounded-3xl bg-[#e9f2df] p-8">
-          <h2 className="text-xl font-bold">
-            Video hướng dẫn đi kèm sản phẩm
-          </h2>
-          <p className="mt-3 leading-7 text-slate-600">
-            Sau khi mua, khách hàng đăng ký tài khoản và quét QR
-            hoặc nhập mã trên sản phẩm để mở nội dung tương ứng.
-            Chức năng kích hoạt đang được xây dựng.
-          </p>
-        </div>
       </main>
 
-      <footer className="border-t border-green-100 px-6 py-8 text-center text-sm text-slate-500">
-        Bloomie · Cùng học hỏi, cùng lớn lên.
+      <footer className="mt-12 border-t border-green-100 px-6 py-8 text-center text-sm text-slate-500">
+        Bloomie · Học cùng lớn khôn.
       </footer>
     </div>
   );
