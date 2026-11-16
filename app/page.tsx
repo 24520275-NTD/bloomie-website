@@ -13,7 +13,7 @@ export default function Home() {
             bloomie<span className="text-orange-400">.</span>
           </a>
           <nav className="flex flex-wrap gap-6 text-sm font-medium">
-            <a href="#kham-pha">Khám phá học liệu</a>
+            <a href="/san-pham">Khám phá học liệu</a>
             <a href="#cach-hoc">Cách bắt đầu</a>
             <a href="#gioi-thieu">Về Bloomie</a>
           </nav>
@@ -36,7 +36,7 @@ export default function Home() {
               cùng Bloomie — để mỗi ngày học tập là một hành trình thú vị.
             </p>
             <a
-              href="#kham-pha"
+              href="/san-pham"
               className="mt-8 inline-block rounded-full bg-[#286347] px-8 py-4 font-semibold text-white"
             >
               Khám phá ngay →
