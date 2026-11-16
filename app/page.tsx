@@ -1,65 +1,100 @@
-import Image from "next/image";
+const categories = [
+  { icon: "📚", name: "Học liệu số", description: "Tài liệu giúp việc học dễ dàng hơn." },
+  { icon: "🎬", name: "Video bài học", description: "Khám phá kiến thức qua từng bài học." },
+  { icon: "🎨", name: "Hoạt động sáng tạo", description: "Khơi mở ý tưởng và niềm vui học tập." },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
+    <div className="min-h-screen bg-[#fffdf8] font-sans text-[#243c32]">
+      <header className="border-b border-green-100">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5 px-6 py-6">
+          <a href="/" className="text-3xl font-extrabold tracking-tight">
+            bloomie<span className="text-orange-400">.</span>
           </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          <nav className="flex flex-wrap gap-6 text-sm font-medium">
+            <a href="#kham-pha">Khám phá học liệu</a>
+            <a href="#cach-hoc">Cách bắt đầu</a>
+            <a href="#gioi-thieu">Về Bloomie</a>
+          </nav>
         </div>
+      </header>
+
+      <main>
+        <section className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 md:grid-cols-2">
+          <div>
+            <p className="mb-5 text-sm font-bold uppercase tracking-widest text-green-700">
+              Cùng học hỏi, cùng lớn lên
+            </p>
+            <h1 className="text-5xl font-extrabold leading-tight md:text-6xl">
+              Ươm mầm tò mò.
+              <br />
+              Nở hoa tri thức.
+            </h1>
+            <p className="mt-6 max-w-lg text-lg leading-8 text-slate-600">
+              Khám phá học liệu số, video và những hoạt động sáng tạo
+              cùng Bloomie — để mỗi ngày học tập là một hành trình thú vị.
+            </p>
+            <a
+              href="#kham-pha"
+              className="mt-8 inline-block rounded-full bg-[#286347] px-8 py-4 font-semibold text-white"
+            >
+              Khám phá ngay →
+            </a>
+          </div>
+          <div className="rounded-[40px] bg-[#e9f2df] p-12 text-center">
+            <div className="text-8xl" aria-hidden="true">🌱</div>
+            <p className="mt-8 text-3xl font-bold">Một chút học hỏi mỗi ngày</p>
+            <p className="mt-4 leading-7 text-slate-600">
+              Từ những điều nhỏ bé, nuôi dưỡng những ý tưởng lớn.
+            </p>
+            <div className="mt-8 flex justify-center gap-5 text-4xl" aria-hidden="true">
+              <span>📖</span><span>🎨</span><span>💡</span>
+            </div>
+          </div>
+        </section>
+
+        <section id="kham-pha" className="mx-auto max-w-6xl px-6 py-14">
+          <p className="font-semibold text-green-700">KHÁM PHÁ BLOOMIE</p>
+          <h2 className="mt-3 text-3xl font-bold">Bạn muốn học điều gì hôm nay?</h2>
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            {categories.map((category) => (
+              <article key={category.name} className="rounded-3xl border border-green-100 bg-white p-8">
+                <span className="text-4xl" aria-hidden="true">{category.icon}</span>
+                <h3 className="mt-5 text-xl font-bold">{category.name}</h3>
+                <p className="mt-3 leading-7 text-slate-600">{category.description}</p>
+                <p className="mt-6 text-sm font-medium text-green-700">Nội dung đang được chuẩn bị</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section id="cach-hoc" className="mx-auto max-w-6xl px-6 py-14">
+          <h2 className="text-3xl font-bold">Hành trình học tập cùng Bloomie</h2>
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            {["Khám phá học liệu phù hợp", "Lựa chọn nội dung yêu thích", "Học và thực hành mỗi ngày"].map((step, index) => (
+              <div key={step} className="rounded-3xl bg-[#f5efdf] p-7">
+                <p className="text-sm font-bold text-green-700">BƯỚC {index + 1}</p>
+                <h3 className="mt-3 text-lg font-semibold">{step}</h3>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="gioi-thieu" className="mx-auto max-w-6xl px-6 py-16">
+          <div className="rounded-[32px] bg-[#243c32] px-8 py-12 text-center text-white">
+            <h2 className="text-3xl font-bold">Không gian cho tri thức nảy mầm</h2>
+            <p className="mx-auto mt-5 max-w-2xl leading-8 text-green-100">
+              Bloomie hướng đến việc kết nối học liệu số và những trải nghiệm
+              học tập sáng tạo trong một không gian dễ khám phá.
+            </p>
+          </div>
+        </section>
       </main>
+
+      <footer className="border-t border-green-100 px-6 py-8 text-center text-sm text-slate-500">
+        Bloomie · Bản giao diện đầu tiên đang được xây dựng.
+      </footer>
     </div>
   );
 }
