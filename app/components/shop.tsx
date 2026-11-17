@@ -20,11 +20,10 @@ export default function Shop({
   const [ready, setReady] = useState(false);
   const [message, setMessage] = useState("");
 
-  
   useEffect(() => {
     try {
       const saved: unknown = JSON.parse(
-        localStorage.getItem(storageKey) || "{}"
+        localStorage.getItem(storageKey) || "{}",
       );
       const valid: Cart = {};
 
@@ -46,7 +45,7 @@ export default function Shop({
       setMessage("Không đọc được giỏ đã lưu. Bạn có thể tạo giỏ mới.");
     }
     setReady(true);
- }, [products]);
+  }, [products]);
 
   function change(id: string, amount: number) {
     const next = { ...cart };
@@ -59,13 +58,20 @@ export default function Shop({
 
     try {
       localStorage.setItem(storageKey, JSON.stringify(next));
-      setMessage(amount > 0 ? "Đã thêm sản phẩm vào giỏ." : "Đã cập nhật giỏ hàng.");
+      setMessage(
+        amount > 0 ? "Đã thêm sản phẩm vào giỏ." : "Đã cập nhật giỏ hàng.",
+      );
     } catch {
-      setMessage("Giỏ đã cập nhật, nhưng trình duyệt không cho lưu khi tải lại.");
+      setMessage(
+        "Giỏ đã cập nhật, nhưng trình duyệt không cho lưu khi tải lại.",
+      );
     }
   }
 
-  const count = Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
+  const count = Object.values(cart).reduce(
+    (sum, quantity) => sum + quantity,
+    0,
+  );
   const visible = cartPage
     ? products.filter((product) => cart[product.id])
     : products;
@@ -86,9 +92,7 @@ export default function Shop({
           <nav className="flex flex-wrap gap-5 font-semibold">
             <Link href="/">Trang chủ</Link>
             <Link href="/san-pham">Sản phẩm</Link>
-            <Link href="/gio-hang">
-              Giỏ hàng {ready ? `(${count})` : ""}
-            </Link>
+            <Link href="/gio-hang">Giỏ hàng {ready ? `(${count})` : ""}</Link>
           </nav>
         </div>
       </header>
@@ -99,8 +103,8 @@ export default function Shop({
         </h1>
 
         <p className="mt-5 rounded-2xl bg-amber-50 p-4 text-sm leading-7 text-amber-900">
-          Giá bán đang cập nhật. Giỏ hàng hiện dùng để chọn sản phẩm,
-          chưa tạo đơn hoặc nhận thanh toán.
+          Giá bán đang cập nhật. Giỏ hàng hiện dùng để chọn sản phẩm, chưa tạo
+          đơn hoặc nhận thanh toán.
         </p>
 
         <p role="status" className="mt-4 min-h-7 text-green-800">
@@ -134,8 +138,31 @@ export default function Shop({
                 </div>
 
                 <div className="p-6">
-                  <h2 className="text-2xl font-bold">{product.name}</h2>
-                  <p className="mt-4">   Giá bán:{" "}   {product.price_vnd === null     ? "đang cập nhật"     : new Intl.NumberFormat("vi-VN", {         style: "currency",         currency: "VND",       }).format(product.price_vnd)} </p>
+                  <h2 className="text-2xl font-bold">
+                    <Link
+                      href={`/san-pham/${product.id}`}
+                      className="hover:underline"
+                    >
+                      {product.name}
+                    </Link>
+                  </h2>
+
+                  <Link
+                    href={`/san-pham/${product.id}`}
+                    className="mt-3 inline-block text-sm font-semibold text-green-700 underline"
+                  >
+                    Xem chi tiết →
+                  </Link>
+                  <p className="mt-4">
+                    {" "}
+                    Giá bán:{" "}
+                    {product.price_vnd === null
+                      ? "đang cập nhật"
+                      : new Intl.NumberFormat("vi-VN", {
+                          style: "currency",
+                          currency: "VND",
+                        }).format(product.price_vnd)}{" "}
+                  </p>
 
                   {cartPage ? (
                     <div className="mt-6">

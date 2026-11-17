@@ -2,6 +2,7 @@ export type Product = {
   id: string;
   name: string;
   image: string;
+  description: string;
   price_vnd: number | null;
 };
 
@@ -21,7 +22,10 @@ export async function getProducts(): Promise<{
 
   try {
     const endpoint = new URL("/rest/v1/products", url);
-    endpoint.searchParams.set("select", "id,name,image,price_vnd");
+    endpoint.searchParams.set(
+  "select",
+  "id,name,image,description,price_vnd"
+);
     endpoint.searchParams.set("is_active", "eq.true");
     endpoint.searchParams.set("order", "id.asc");
 
