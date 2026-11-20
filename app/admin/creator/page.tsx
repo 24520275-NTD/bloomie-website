@@ -35,9 +35,14 @@ export default function CreatorAdminPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
 
-  const visibleApplications = applications.filter(
-    (item) => statusFilter === "all" || item.status === statusFilter,
-  );
+  const [search, setSearch] = useState("");
+  const query = search.trim().toLocaleLowerCase("vi");
+  const visibleApplications = applications.filter((item) => {
+    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    const matchesSearch = [item.full_name, item.channel_name, item.platform, item.content_field]
+      .some((value) => value?.toLocaleLowerCase("vi").includes(query));
+    return matchesStatus && matchesSearch;
+  });
   const [allowed, setAllowed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("Đang kiểm tra quyền quản trị…");
@@ -146,6 +151,16 @@ export default function CreatorAdminPage() {
               </select>
             </label>
 
+            <label className="grid flex-1 gap-2 text-sm font-medium">
+              Tìm hồ sơ Creator
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Tên, kênh, nền tảng hoặc lĩnh vực"
+                className="min-w-56 rounded-lg border border-green-200 bg-white px-3 py-2"
+              />
+            </label>
             <p className="pb-2 text-sm" aria-live="polite">
               Hiển thị {visibleApplications.length}/{applications.length} hồ sơ
             </p>
@@ -156,7 +171,7 @@ export default function CreatorAdminPage() {
           <p className="mt-6">
             {applications.length === 0
               ? "Chưa có hồ sơ nào."
-              : "Không có hồ sơ ở trạng thái đã chọn."}
+              : "Không có hồ sơ phù hợp với bộ lọc."}
           </p>
         )}
 

@@ -6,9 +6,11 @@ import Link from "next/link";
 export default function AddToCart({
   productId,
   validIds,
+  compact = false,
 }: {
   productId: string;
   validIds: string[];
+  compact?: boolean;
 }) {
   const [message, setMessage] = useState("");
 
@@ -51,20 +53,20 @@ export default function AddToCart({
   }
 
   return (
-    <div className="mt-8">
+    <div className={compact ? "mt-4" : "mt-8"}>
       <button
         onClick={add}
-        className="rounded-full bg-[#286347] px-8 py-4 font-semibold text-white"
+        className={compact ? "rounded-full bg-[#245c45] px-4 py-3 text-sm font-semibold text-white" : "rounded-full bg-[#286347] px-8 py-4 font-semibold text-white"}
       >
         Thêm vào giỏ hàng
       </button>
 
-      <Link
+      {!compact && <Link
         href="/gio-hang"
         className="ml-5 inline-block py-4 font-semibold underline"
       >
         Xem giỏ hàng
-      </Link>
+      </Link>}
 
       <p role="status" className="mt-4 leading-7">
         {message}
