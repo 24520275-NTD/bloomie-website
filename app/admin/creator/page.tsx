@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "../../lib/supabase-browser";
+import CreatorEvidence from "../../components/creator-evidence";
 
 const labels = {
   pending: "Chờ xét duyệt",
@@ -15,6 +16,7 @@ type Status = keyof typeof labels;
 
 type Application = {
   id: string;
+  user_id: string;
   full_name: string;
   channel_name: string;
   platform: string;
@@ -57,7 +59,7 @@ export default function CreatorAdminPage() {
         const { data, error: listError } = await supabase
           .from("creator_applications")
           .select(
-            "id,full_name,channel_name,platform,status,contact_email,phone,channel_url,content_field,followers,introduction,professional_background",
+            "id,user_id,full_name,channel_name,platform,status,contact_email,phone,channel_url,content_field,followers,introduction,professional_background",
           )
           .order("created_at", { ascending: false });
 
@@ -175,6 +177,7 @@ export default function CreatorAdminPage() {
                     {item.professional_background || "Chưa bổ sung"}
                   </p>
                 </div>
+                <CreatorEvidence key={item.user_id} userId={item.user_id} />
               </details>
               <label className="block">
                 Trạng thái
