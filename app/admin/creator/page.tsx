@@ -33,6 +33,11 @@ type Application = {
 export default function CreatorAdminPage() {
   const [supabase] = useState(() => createClient());
   const [applications, setApplications] = useState<Application[]>([]);
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
+
+  const visibleApplications = applications.filter(
+    (item) => statusFilter === "all" || item.status === statusFilter,
+  );
   const [allowed, setAllowed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("Đang kiểm tra quyền quản trị…");
@@ -122,12 +127,41 @@ export default function CreatorAdminPage() {
           {message}
         </p>
 
-        {allowed && applications.length === 0 && (
-          <p className="mt-6">Chưa có hồ sơ nào.</p>
+        {allowed && (
+          <div className="mt-6 flex flex-wrap items-end gap-4">
+            <label className="grid gap-2 text-sm font-medium">
+              Trạng thái hồ sơ
+              <select
+                className="rounded-lg border border-green-200 bg-white px-3 py-2"
+                value={statusFilter}
+                onChange={(event) =>
+                  setStatusFilter(event.target.value as Status | "all")
+                }
+              >
+                <option value="all">Tất cả trạng thái</option>
+                <option value="pending">{labels.pending}</option>
+                <option value="reviewing">{labels.reviewing}</option>
+                <option value="approved">{labels.approved}</option>
+                <option value="rejected">{labels.rejected}</option>
+              </select>
+            </label>
+
+            <p className="pb-2 text-sm" aria-live="polite">
+              Hiển thị {visibleApplications.length}/{applications.length} hồ sơ
+            </p>
+          </div>
+        )}
+
+        {allowed && visibleApplications.length === 0 && (
+          <p className="mt-6">
+            {applications.length === 0
+              ? "Chưa có hồ sơ nào."
+              : "Không có hồ sơ ở trạng thái đã chọn."}
+          </p>
         )}
 
         {allowed &&
-          applications.map((item) => (
+          visibleApplications.map((item) => (
             <form
               key={`${item.id}-${item.status}`}
               className="mt-6 space-y-4 rounded-2xl border bg-white p-5"
