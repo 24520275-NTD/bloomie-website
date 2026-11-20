@@ -3,9 +3,19 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { createClient } from "../lib/supabase-browser";
+import { createClient, hasSupabaseConfig } from "../lib/supabase-browser";
+
+const signInLink = (
+  <Link href="/dang-nhap" className="rounded-full px-2.5 py-2 text-sm font-semibold text-[#245c45] hover:bg-[#e8f1dd] sm:px-4">
+    Đăng nhập
+  </Link>
+);
 
 export default function AccountNav() {
+  return hasSupabaseConfig ? <ConnectedAccountNav /> : signInLink;
+}
+
+function ConnectedAccountNav() {
   const [supabase] = useState(() => createClient());
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
@@ -59,8 +69,8 @@ export default function AccountNav() {
     }
   }
 
-  if (!ready) return null;
-  if (!user) return <Link href="/tai-khoan">Đăng nhập</Link>;
+  if (!ready) return <span className="w-20" aria-hidden="true" />;
+  if (!user) return signInLink;
 
   const initial = user.email?.trim().charAt(0).toUpperCase() || "B";
 

@@ -73,7 +73,6 @@ export default async function ProductDetailPage({
 
             <AddToCart
               productId={product.id}
-              validIds={products.map((item) => item.id)}
             />
 
             <p className="mt-6 text-sm leading-7 text-slate-600">

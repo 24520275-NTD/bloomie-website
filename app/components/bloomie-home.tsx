@@ -2,98 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
-import AccountNav from "./account-nav";
+import { useState } from "react";
+import { Icon, type IconName } from "./bloomie-icon";
+import Storefront from "./storefront";
 import AddToCart from "./add-to-cart";
 import type { Product } from "../lib/products";
 import hero from "../../public/assets/bo-dung-cu-hoc-tap.png";
-
-type IconName =
-  | "arrow"
-  | "bag"
-  | "book"
-  | "check"
-  | "close"
-  | "heart"
-  | "menu"
-  | "palette"
-  | "pencil"
-  | "shield"
-  | "spark";
-
-function Icon({ name, className = "size-5" }: { name: IconName; className?: string }) {
-  const paths: Record<IconName, ReactNode> = {
-    arrow: <path d="M5 12h14m-5-5 5 5-5 5" />,
-    bag: (
-      <>
-        <path d="M6 8h12l-1 12H7L6 8Z" />
-        <path d="M9 9V6a3 3 0 0 1 6 0v3" />
-      </>
-    ),
-    book: (
-      <>
-        <path d="M4 5.5A3.5 3.5 0 0 1 7.5 2H11v18H7.5A3.5 3.5 0 0 0 4 23V5.5Z" />
-        <path d="M20 5.5A3.5 3.5 0 0 0 16.5 2H13v18h3.5A3.5 3.5 0 0 1 20 23V5.5Z" />
-      </>
-    ),
-    check: <path d="m5 12 4 4L19 6" />,
-    close: (
-      <>
-        <path d="m6 6 12 12" />
-        <path d="M18 6 6 18" />
-      </>
-    ),
-    heart: (
-      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
-    ),
-    menu: (
-      <>
-        <path d="M4 7h16" />
-        <path d="M4 12h16" />
-        <path d="M4 17h16" />
-      </>
-    ),
-    palette: (
-      <>
-        <path d="M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4h3a6 6 0 0 0 0-12h-3Z" />
-        <path d="M7.5 9h.01M9 5.5h.01M14 5.5h.01" />
-      </>
-    ),
-    pencil: (
-      <>
-        <path d="m4 20 4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20Z" />
-        <path d="m14 7 3 3" />
-      </>
-    ),
-    shield: <path d="M12 22s8-3.8 8-10V5l-8-3-8 3v7c0 6.2 8 10 8 10Z" />,
-    spark: (
-      <path d="m12 2 1.4 5.2L18 10l-4.6 2.8L12 18l-1.4-5.2L6 10l4.6-2.8L12 2ZM5 17l.6 2.4L8 20l-2.4.6L5 23l-.6-2.4L2 20l2.4-.6L5 17Z" />
-    ),
-  };
-
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {paths[name]}
-    </svg>
-  );
-}
-
-const navigation = [
-  ["Danh mục", "#danh-muc"],
-  ["Sản phẩm", "#san-pham"],
-  ["Vì sao chọn Bloomie", "#loi-ich"],
-  ["Creator", "/creator/dang-ky"],
-  ["Hỏi đáp", "#faq"],
-] as const;
 
 const faqs = [
   ["Xem thông tin từng bộ dụng cụ ở đâu?", "Mở trang Sản phẩm và chọn một bộ để xem hình ảnh, mô tả và thông tin giá hiện có."],
@@ -110,72 +24,12 @@ export default function BloomieHome({ products, productError }: {
   products: Product[];
   productError: string | null;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
 
   const validIds = products.map(({ id }) => id);
 
   return (
-    <div className="bloomie-home min-h-screen bg-[#fffdf8] text-[#1f3d33]">
-      <header className="border-b border-[#1f3d33]/8 bg-[#fffdf8]/95">
-        <div className="mx-auto flex min-h-18 max-w-[1200px] flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-3 md:min-h-20 md:px-8">
-          <a
-            href="#top"
-            className="group rounded-md text-[25px] font-extrabold tracking-[-.04em] outline-none focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
-            aria-label="Bloomie - Trang chủ"
-          >
-            bloomie
-            <span className="text-[#f58220] transition-colors group-hover:text-[#d96d12]">.</span>
-          </a>
-          <nav className="hidden items-center gap-8 lg:flex" aria-label="Điều hướng chính">
-            {navigation.map(([item, href]) => (
-              <a
-                key={item}
-                href={href}
-                className="rounded-sm py-2 text-sm font-medium text-[#324f45] outline-none transition hover:text-[#1e7d3a] focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
-          <div className="flex items-center gap-2">
-            <AccountNav />
-            <Link
-              href="/gio-hang"
-              aria-label="Giỏ hàng"
-              className="grid size-11 place-items-center rounded-full bg-[#245c45] text-white transition hover:bg-[#1c4b38] focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
-            >
-              <Icon name="bag" />
-            </Link>
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="flex size-11 items-center justify-center rounded-full text-[#245c45] outline-none transition hover:bg-[#e8f1dd] active:scale-95 focus-visible:ring-3 focus-visible:ring-[#f58220]/50 lg:hidden"
-              aria-label={menuOpen ? "Đóng menu" : "Mở menu"}
-              aria-expanded={menuOpen}
-            >
-              <Icon name={menuOpen ? "close" : "menu"} />
-            </button>
-          </div>
-        </div>
-        {menuOpen && (
-          <nav
-            className="border-t border-[#1f3d33]/8 px-5 py-4 lg:hidden"
-            aria-label="Điều hướng mobile"
-          >
-            {navigation.map(([item, href]) => (
-              <a
-                onClick={() => setMenuOpen(false)}
-                key={item}
-                href={href}
-                className="block rounded-xl px-3 py-3 text-base font-medium outline-none transition hover:bg-[#e8f1dd] focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
-        )}
-      </header>
-
+    <Storefront home productIds={productError ? undefined : validIds}>
       <main id="top">
         <section className="mx-auto grid max-w-[1200px] items-center gap-12 px-5 py-14 md:px-8 md:py-20 lg:grid-cols-[.95fr_1.05fr] lg:gap-18 lg:py-24">
           <div>
@@ -348,7 +202,7 @@ export default function BloomieHome({ products, productError }: {
                           ? "Giá đang cập nhật"
                           : formatPrice.format(product.price_vnd)}
                       </p>
-                      <AddToCart productId={product.id} validIds={validIds} compact />
+                      <AddToCart productId={product.id} compact />
                     </div>
                   </article>
                 ))}
@@ -502,41 +356,6 @@ export default function BloomieHome({ products, productError }: {
         </section>
       </main>
 
-      <footer className="border-t border-[#1f3d33]/10">
-        <div className="mx-auto grid max-w-[1200px] gap-10 px-5 py-12 md:grid-cols-2 md:px-8 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
-          <div>
-            <a
-              href="#top"
-              className="rounded-md font-display text-2xl font-extrabold tracking-[-.04em] outline-none focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
-            >
-              bloomie<span className="text-[#f58220]">.</span>
-            </a>
-            <p className="mt-4 max-w-xs text-sm leading-6 text-[#4a5568]">
-              Dụng cụ học tập giúp bé khám phá thế giới bằng đôi tay và trí tò mò của chính mình.
-            </p>
-          </div>
-          {([
-            ["Khám phá", [["Danh mục", "#danh-muc"], ["Sản phẩm", "/san-pham"]]],
-            ["Tài khoản", [["Thông tin tài khoản", "/tai-khoan"], ["Giỏ hàng", "/gio-hang"]]],
-            ["Cộng tác", [["Hồ sơ Creator", "/creator/dang-ky"], ["Hỏi đáp", "#faq"]]],
-          ] as const).map(([heading, links]) => (
-            <div key={heading}>
-              <h3 className="font-display font-bold">{heading}</h3>
-              <ul className="mt-4 space-y-3">
-                {links.map(([label, href]) => (
-                  <li key={href}>
-                    <Link href={href} className="text-sm text-[#4a5568] hover:underline">{label}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <div className="mx-auto flex max-w-[1200px] flex-col gap-2 border-t border-[#1f3d33]/8 px-5 py-5 text-xs text-[#68736f] sm:flex-row sm:justify-between md:px-8">
-          <p>© Bloomie</p>
-          <p>Thiết kế với sự tận tâm dành cho trẻ em Việt.</p>
-        </div>
-      </footer>
-    </div>
+    </Storefront>
   );
 }
