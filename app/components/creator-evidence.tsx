@@ -22,6 +22,10 @@ export default function CreatorEvidence({
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [preview, setPreview] = useState<{
+    name: string;
+    url: string;
+  } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -37,7 +41,9 @@ export default function CreatorEvidence({
 
         if (error) throw error;
         if (active) {
-          setFiles((data ?? []).filter((file) => file.id).map((file) => file.name));
+          setFiles(
+            (data ?? []).filter((file) => file.id).map((file) => file.name),
+          );
         }
       } catch {
         if (active) setMessage("Chưa tải được danh sách minh chứng.");
@@ -95,7 +101,31 @@ export default function CreatorEvidence({
       setBusy(false);
     }
   }
+  async function openPreview(name: string) {
+    setBusy(true);
+    setMessage("");
+    setPreview(null);
 
+    try {
+      const { data, error } = await supabase.storage
+        .from("creator-evidence")
+        .createSignedUrl(`${userId}/${name}`, 300);
+
+      if (error || !data?.signedUrl) {
+        setMessage("Chưa mở được minh chứng. Bạn hãy thử lại.");
+        return;
+      }
+
+      setPreview({
+        name: name.replace(/^[a-f0-9-]{36}--/, ""),
+        url: data.signedUrl,
+      });
+    } catch {
+      setMessage("Chưa mở được minh chứng. Bạn hãy thử lại.");
+    } finally {
+      setBusy(false);
+    }
+  }
   async function download(name: string) {
     setBusy(true);
     setMessage("");
@@ -153,21 +183,79 @@ export default function CreatorEvidence({
       )}
 
       <ul className="space-y-2">
-        {files.map((name) => (
-          <li key={name}>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void download(name)}
-              className="break-all text-left text-sm text-[#286347] underline disabled:opacity-50"
-            >
-              Tải xuống {name.replace(/^[a-f0-9-]{36}--/, "")}
-            </button>
-          </li>
-        ))}
-      </ul>
+  {files.map((name) => (
+    <li key={name} className="rounded-lg border bg-white p-3">
+      <p className="break-all text-sm">
+        {name.replace(/^[a-f0-9-]{36}--/, "")}
+      </p>
 
-      {message && <p role="status" className="text-sm">{message}</p>}
+      <div className="mt-2 flex flex-wrap gap-4 text-sm">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void openPreview(name)}
+          className="font-semibold text-[#286347] underline disabled:opacity-50"
+        >
+          Xem trực tiếp
+        </button>
+
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void download(name)}
+          className="text-slate-600 underline disabled:opacity-50"
+        >
+          Tải xuống
+        </button>
+      </div>
+    </li>
+  ))}
+</ul>
+
+{preview && (
+  <div className="space-y-3 rounded-xl border bg-white p-3">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <p className="break-all text-sm font-semibold">{preview.name}</p>
+      <button
+        type="button"
+        onClick={() => setPreview(null)}
+        className="text-sm underline"
+      >
+        Đóng xem trước
+      </button>
+    </div>
+
+    {preview.name.toLowerCase().endsWith(".pdf") ? (
+      <iframe
+        src={preview.url}
+        title={`Xem PDF ${preview.name}`}
+        className="h-[65vh] w-full rounded-lg border"
+      />
+    ) : (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img
+        src={preview.url}
+        alt={preview.name}
+        className="mx-auto max-h-[65vh] max-w-full object-contain"
+      />
+    )}
+
+    <a
+      href={preview.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-block text-sm text-[#286347] underline"
+    >
+      Mở trong tab mới
+    </a>
+  </div>
+)}
+
+      {message && (
+        <p role="status" className="text-sm">
+          {message}
+        </p>
+      )}
     </section>
   );
 }
