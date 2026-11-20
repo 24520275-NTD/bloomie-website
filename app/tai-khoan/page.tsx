@@ -15,28 +15,6 @@ export default function AccountPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
-  const [adminEmail, setAdminEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    setAdminEmail(null);
-
-    if (userEmail) {
-      void Promise.resolve(supabase.rpc("is_creator_admin"))
-        .then(({ data, error }) => {
-          if (active && !error && data === true) {
-            setAdminEmail(userEmail);
-          }
-        })
-        .catch(() => {
-          if (active) setAdminEmail(null);
-        });
-    }
-
-    return () => {
-      active = false;
-    };
-  }, [supabase, userEmail]);
 
   useEffect(() => {
     let active = true;
@@ -157,15 +135,6 @@ export default function AccountPage() {
           <section className="mt-6 rounded-3xl border border-green-100 bg-white p-6">
             <p className="font-semibold">Bạn đã đăng nhập</p>
             <p className="mt-3 break-all">{userEmail}</p>
-
-            {adminEmail === userEmail && (
-              <Link
-                href="/admin/creator"
-                className="mt-4 inline-block rounded-full bg-[#286347] px-5 py-3 font-semibold text-white"
-              >
-                Duyệt hồ sơ Creator
-              </Link>
-            )}
 
             <Link
               href="/san-pham"
