@@ -1,0 +1,152 @@
+.bloomie-auth {
+  padding: 3.5rem 1.25rem 4rem;
+  background: #f7f5ec;
+}
+
+.auth-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+  max-width: 1120px;
+  min-height: 595px;
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid #dce5d7;
+  border-radius: 36px;
+  background: #fffdf8;
+  box-shadow: 0 18px 50px #1f3d330b;
+}
+
+.auth-form-panel {
+  align-self: center;
+  width: 100%;
+  padding: 2.25rem clamp(2rem, 4.3vw, 4.25rem);
+}
+
+.auth-back {
+  display: inline-block;
+  margin-bottom: 1.45rem;
+  color: #496259;
+  font-size: .875rem;
+  font-weight: 600;
+}
+
+.auth-back:hover { text-decoration: underline; }
+
+.auth-tabs {
+  display: flex;
+  width: fit-content;
+  gap: .25rem;
+  margin-bottom: 1.5rem;
+  padding: .25rem;
+  border-radius: 999px;
+  background: #edf1e6;
+}
+
+.auth-tabs a {
+  padding: .55rem 1.05rem;
+  border-radius: 999px;
+  color: #385449;
+  font-size: .875rem;
+  font-weight: 600;
+}
+
+.auth-tabs a[aria-current="page"] {
+  background: #fffdf8;
+  color: #245c45;
+  box-shadow: 0 1px 5px #1f3d331a;
+}
+
+.auth-title {
+  font-size: clamp(2rem, 3.5vw, 3.1rem);
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -.045em;
+}
+
+.auth-intro, .auth-note {
+  color: #496259;
+  line-height: 1.6;
+}
+
+.auth-intro { margin-top: .7rem; }
+.auth-note { margin-top: .85rem; font-size: .875rem; }
+
+.auth-form {
+  display: grid;
+  gap: .95rem;
+  margin-top: 1.55rem;
+}
+
+.auth-form .bloomie-button { margin-top: .25rem; }
+
+.auth-story {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  justify-content: center;
+  gap: 1.6rem;
+  min-width: 0;
+  padding: clamp(1.75rem, 3.6vw, 3.5rem);
+  background: #245c45;
+  color: #fffdf8;
+}
+
+.auth-photo {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  border-radius: 24px;
+  object-fit: cover;
+}
+
+.auth-story-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.auth-story-copy p {
+  max-width: 12ch;
+  font-size: clamp(2rem, 3.5vw, 3.25rem);
+  line-height: 1.04;
+  letter-spacing: -.04em;
+  font-weight: 800;
+}
+
+.auth-spark {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: #f8cf9c;
+  color: #244c3c;
+}
+
+.auth-layout-signup .auth-story {
+  grid-column: 1;
+  grid-row: 1;
+  background: #f8e2ca;
+  color: #1f3d33;
+}
+
+.auth-layout-signup .auth-form-panel { grid-column: 2; grid-row: 1; }
+.auth-layout-signup .auth-tabs { background: #f6eadd; }
+.auth-layout-signup .auth-spark { background: #fffdf8; }
+
+@media (max-width: 760px) {
+  .bloomie-auth { padding-block: 1.4rem 2.5rem; }
+  .auth-layout { display: block; min-height: 0; border-radius: 24px; }
+  .auth-form-panel { max-width: 520px; margin-inline: auto; padding: 1.45rem 1.25rem 2rem; }
+  .auth-back { margin-bottom: 1.1rem; }
+  .auth-tabs { margin-bottom: 1.2rem; }
+  .auth-story { display: none; }
+}
+
+.bloomie-storefront .bloomie-auth .font-display {
+  font-family: "Be Vietnam Pro", Arial, sans-serif;
+  font-weight: 700;
+}
