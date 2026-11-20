@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "../../lib/supabase-browser";
 import CreatorEvidence from "../../components/creator-evidence";
+import CreatorEvaluation from "./creator-evaluation";
 
 const labels = {
   pending: "Chờ xét duyệt",
@@ -36,6 +37,7 @@ export default function CreatorAdminPage() {
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
 
   const [search, setSearch] = useState("");
+  const [evaluationId, setEvaluationId] = useState<string | null>(null);
   const query = search.trim().toLocaleLowerCase("vi");
   const visibleApplications = applications.filter((item) => {
     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
@@ -177,80 +179,93 @@ export default function CreatorAdminPage() {
 
         {allowed &&
           visibleApplications.map((item) => (
-            <form
-              key={`${item.id}-${item.status}`}
-              className="mt-6 space-y-4 rounded-2xl border bg-white p-5"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const status = new FormData(event.currentTarget).get("status");
-                if (
-                  typeof status === "string" &&
-                  Object.hasOwn(labels, status)
-                ) {
-                  void saveStatus(item.id, status as Status);
-                }
-              }}
-            >
-              <h2 className="text-xl font-bold">{item.full_name}</h2>
-              <p>
-                {item.channel_name} · {item.platform}
-              </p>
-              <details className="rounded-xl bg-[#f5f8f1] p-4">
-                <summary className="cursor-pointer font-semibold text-[#286347]">
-                  Xem chi tiết hồ sơ
-                </summary>
-
-                <div className="mt-4 space-y-2 break-words text-sm leading-6">
-                  <p>
-                    <strong>Email:</strong> {item.contact_email}
-                  </p>
-                  <p>
-                    <strong>Điện thoại:</strong> {item.phone}
-                  </p>
-                  <p>
-                    <strong>Đường dẫn kênh:</strong> {item.channel_url}
-                  </p>
-                  <p>
-                    <strong>Lĩnh vực:</strong> {item.content_field}
-                  </p>
-                  <p>
-                    <strong>Người theo dõi:</strong>{" "}
-                    {item.followers.toLocaleString("vi-VN")}
-                  </p>
-                  <p className="whitespace-pre-wrap">
-                    <strong>Giới thiệu:</strong>{" "}
-                    {item.introduction || "Chưa bổ sung"}
-                  </p>
-                  <p className="whitespace-pre-wrap">
-                    <strong>Kinh nghiệm:</strong>{" "}
-                    {item.professional_background || "Chưa bổ sung"}
-                  </p>
-                </div>
-                <CreatorEvidence key={item.user_id} userId={item.user_id} />
-              </details>
-              <label className="block">
-                Trạng thái
-                <select
-                  name="status"
-                  defaultValue={item.status}
-                  disabled={busy}
-                  className="ml-3 rounded border p-2"
-                >
-                  {Object.entries(labels).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                type="submit"
-                disabled={busy}
-                className="rounded-lg bg-[#286347] px-4 py-2 text-white disabled:opacity-50"
+            <article key={item.id} className="mt-6 rounded-2xl border bg-white">
+              <form
+                key={item.status}
+                className="space-y-4 p-5"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const status = new FormData(event.currentTarget).get("status");
+                  if (
+                    typeof status === "string" &&
+                    Object.hasOwn(labels, status)
+                  ) {
+                    void saveStatus(item.id, status as Status);
+                  }
+                }}
               >
-                Lưu trạng thái
-              </button>
-            </form>
+                <h2 className="text-xl font-bold">{item.full_name}</h2>
+                <p>
+                  {item.channel_name} · {item.platform}
+                </p>
+                <details className="rounded-xl bg-[#f5f8f1] p-4">
+                  <summary className="cursor-pointer font-semibold text-[#286347]">
+                    Xem chi tiết hồ sơ
+                  </summary>
+
+                  <div className="mt-4 space-y-2 break-words text-sm leading-6">
+                    <p>
+                      <strong>Email:</strong> {item.contact_email}
+                    </p>
+                    <p>
+                      <strong>Điện thoại:</strong> {item.phone}
+                    </p>
+                    <p>
+                      <strong>Đường dẫn kênh:</strong> {item.channel_url}
+                    </p>
+                    <p>
+                      <strong>Lĩnh vực:</strong> {item.content_field}
+                    </p>
+                    <p>
+                      <strong>Người theo dõi:</strong>{" "}
+                      {item.followers.toLocaleString("vi-VN")}
+                    </p>
+                    <p className="whitespace-pre-wrap">
+                      <strong>Giới thiệu:</strong>{" "}
+                      {item.introduction || "Chưa bổ sung"}
+                    </p>
+                    <p className="whitespace-pre-wrap">
+                      <strong>Kinh nghiệm:</strong>{" "}
+                      {item.professional_background || "Chưa bổ sung"}
+                    </p>
+                  </div>
+                  <CreatorEvidence key={item.user_id} userId={item.user_id} />
+                </details>
+                <label className="block">
+                  Trạng thái
+                  <select
+                    name="status"
+                    defaultValue={item.status}
+                    disabled={busy}
+                    className="ml-3 rounded border p-2"
+                  >
+                    {Object.entries(labels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="rounded-lg bg-[#286347] px-4 py-2 text-white disabled:opacity-50"
+                >
+                  Lưu trạng thái
+                </button>
+              </form>
+              <section className="rounded-b-2xl border-t border-green-100 bg-[#f5f8f1] p-5" aria-label="Chấm điểm hồ sơ">
+                <button
+                  type="button"
+                  className="font-semibold text-[#286347] underline"
+                  aria-expanded={evaluationId === item.id}
+                  onClick={() => setEvaluationId((current) => current === item.id ? null : item.id)}
+                >
+                  {evaluationId === item.id ? "Đóng bảng đánh giá" : "Đánh giá Creator"}
+                </button>
+                {evaluationId === item.id && <CreatorEvaluation applicationId={item.id} />}
+              </section>
+            </article>
           ))}
       </div>
     </main>
