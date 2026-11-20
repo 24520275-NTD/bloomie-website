@@ -15,20 +15,44 @@ export default function AccountPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    setAdminEmail(null);
+
+    if (userEmail) {
+      void Promise.resolve(supabase.rpc("is_creator_admin"))
+        .then(({ data, error }) => {
+          if (active && !error && data === true) {
+            setAdminEmail(userEmail);
+          }
+        })
+        .catch(() => {
+          if (active) setAdminEmail(null);
+        });
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [supabase, userEmail]);
+
   useEffect(() => {
     let active = true;
 
     if (
-      new URLSearchParams(window.location.search).get("confirmation")
-      === "failed"
+      new URLSearchParams(window.location.search).get("confirmation") ===
+      "failed"
     ) {
       setMessage(
         "Liên kết xác nhận không hợp lệ hoặc đã hết hạn. " +
-        "Nếu email đã được xác nhận, hãy thử đăng nhập."
+          "Nếu email đã được xác nhận, hãy thử đăng nhập.",
       );
     }
 
-    supabase.auth.getUser()
+    supabase.auth
+      .getUser()
       .then(({ data }) => {
         if (active) setUserEmail(data.user?.email ?? null);
       })
@@ -70,8 +94,8 @@ export default function AccountPage() {
           setPassword("");
           setMessage(
             "Yêu cầu đăng ký đã được gửi. Kiểm tra email, kể cả thư rác. " +
-            "Nếu nhận được thư xác nhận, hãy mở liên kết bằng " +
-            "cùng trình duyệt đã đăng ký."
+              "Nếu nhận được thư xác nhận, hãy mở liên kết bằng " +
+              "cùng trình duyệt đã đăng ký.",
           );
         }
       } else {
@@ -133,6 +157,15 @@ export default function AccountPage() {
           <section className="mt-6 rounded-3xl border border-green-100 bg-white p-6">
             <p className="font-semibold">Bạn đã đăng nhập</p>
             <p className="mt-3 break-all">{userEmail}</p>
+
+            {adminEmail === userEmail && (
+              <Link
+                href="/admin/creator"
+                className="mt-4 inline-block rounded-full bg-[#286347] px-5 py-3 font-semibold text-white"
+              >
+                Duyệt hồ sơ Creator
+              </Link>
+            )}
 
             <Link
               href="/san-pham"
