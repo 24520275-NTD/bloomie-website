@@ -15,6 +15,16 @@ export default function CreatorProfileReview({
 }) {
   const [note, setNote] = useState("");
   const [reviews, setReviews] = useState<Record<string, string>>({});
+  const [evidenceDetails, setEvidenceDetails] = useState<
+    Record<
+      string,
+      {
+        file_type: string;
+        uploaded_at: string | null;
+        uploaded_by: string | null;
+      }
+    >
+  >({});
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("Đang tải ghi chú và xác minh…");
@@ -24,11 +34,19 @@ export default function CreatorProfileReview({
 
     async function load() {
       try {
-        const [notes, evidence] = await Promise.all([
-          supabase.from("creator_internal_notes")
-            .select("note").eq("application_id", applicationId).maybeSingle(),
-          supabase.from("creator_evidence_reviews")
-            .select("object_id,verification_status").eq("application_id", applicationId),
+        const [notes, evidence, details] = await Promise.all([
+          supabase
+            .from("creator_internal_notes")
+            .select("note")
+            .eq("application_id", applicationId)
+            .maybeSingle(),
+          supabase
+            .from("creator_evidence_reviews")
+            .select("object_id,verification_status")
+            .eq("application_id", applicationId),
+          supabase.rpc("list_creator_evidence_details", {
+            p_application_id: applicationId,
+          }),
         ]);
 
         if (notes.error || evidence.error) {
@@ -38,20 +56,38 @@ export default function CreatorProfileReview({
         if (!active) return;
 
         setNote(notes.data?.note ?? "");
-        setReviews(Object.fromEntries(
-          (evidence.data ?? []).map(({ object_id, verification_status }) =>
-            [object_id, verification_status],
+        setReviews(
+          Object.fromEntries(
+            (evidence.data ?? []).map(({ object_id, verification_status }) => [
+              object_id,
+              verification_status,
+            ]),
           ),
-        ));
+        );
+        setEvidenceDetails(
+          Object.fromEntries(
+            (details.data ?? []).map(
+              (item: {
+                object_id: string;
+                file_type: string;
+                uploaded_at: string | null;
+                uploaded_by: string | null;
+              }) => [item.object_id, item],
+            ),
+          ),
+        );
         setReady(true);
         setMessage("");
       } catch {
-        if (active) setMessage("Chưa tải được ghi chú và xác minh. Hãy tải lại trang.");
+        if (active)
+          setMessage("Chưa tải được ghi chú và xác minh. Hãy tải lại trang.");
       }
     }
 
     void load();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [applicationId, supabase]);
 
   async function saveNote(event: FormEvent<HTMLFormElement>) {
@@ -62,10 +98,12 @@ export default function CreatorProfileReview({
     setMessage("");
 
     try {
-      const { error } = await supabase.from("creator_internal_notes").upsert(
-        { application_id: applicationId, note },
-        { onConflict: "application_id" },
-      );
+      const { error } = await supabase
+        .from("creator_internal_notes")
+        .upsert(
+          { application_id: applicationId, note },
+          { onConflict: "application_id" },
+        );
       if (error) throw error;
       setMessage("Đã lưu ghi chú nội bộ.");
     } catch {
@@ -123,7 +161,11 @@ export default function CreatorProfileReview({
             Lưu ghi chú
           </button>
         </form>
-        {message && <p role="status" className="mt-3 text-sm">{message}</p>}
+        {message && (
+          <p role="status" className="mt-3 text-sm">
+            {message}
+          </p>
+        )}
       </section>
 
       <section className="mt-5 rounded-xl border border-green-200 bg-white p-4">
@@ -131,21 +173,52 @@ export default function CreatorProfileReview({
         {userId ? (
           <CreatorEvidence
             userId={userId}
-            renderReview={(objectId) => (
-              <label className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                Trạng thái xác minh
-                <select
-                  className="rounded-md border border-green-200 bg-white p-1"
-                  value={reviews[objectId] ?? "pending"}
-                  disabled={!ready || busy}
-                  onChange={(event) => void saveReview(objectId, event.target.value)}
-                >
-                  <option value="pending">Chưa xác minh</option>
-                  <option value="verified">Đã xác minh</option>
-                  <option value="rejected">Không đạt</option>
-                </select>
-              </label>
-            )}
+            renderReview={(objectId) => {
+              const detail = evidenceDetails[objectId];
+
+              return (
+                <>
+                  {detail ? (
+                    <p className="mt-2 text-sm text-slate-700">
+                      {detail.file_type}
+                      {" · Ngày tải: "}
+                      {detail.uploaded_at
+                        ? new Date(detail.uploaded_at).toLocaleDateString(
+                            "vi-VN",
+                            {
+                              timeZone: "Asia/Ho_Chi_Minh",
+                            },
+                          )
+                        : "Chưa ghi nhận"}
+                      {" · Người tải: "}
+                      {detail.uploaded_by === userId
+                        ? "Creator"
+                        : detail.uploaded_by || "Chưa ghi nhận"}
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-sm text-slate-600">
+                      Chưa có thông tin tải tệp.
+                    </p>
+                  )}
+
+                  <label className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                    Trạng thái xác minh
+                    <select
+                      className="rounded-md border border-green-200 bg-white p-1"
+                      value={reviews[objectId] ?? "pending"}
+                      disabled={!ready || busy}
+                      onChange={(event) =>
+                        void saveReview(objectId, event.target.value)
+                      }
+                    >
+                      <option value="pending">Chưa xác minh</option>
+                      <option value="verified">Đã xác minh</option>
+                      <option value="rejected">Không đạt</option>
+                    </select>
+                  </label>
+                </>
+              );
+            }}
           />
         ) : (
           <p>Hồ sơ chưa gắn với tài khoản Creator để xem minh chứng.</p>
