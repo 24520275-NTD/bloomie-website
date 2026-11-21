@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import CreatorEvidence from "../../components/creator-evidence";
 import { createClient } from "../../lib/supabase-browser";
+import "../../home.css";
 
 type Application = {
   full_name: string;
@@ -21,10 +22,28 @@ const statusLabels: Record<string, string> = {
 const fields = [
   { name: "full_name", label: "Họ và tên", type: "text", min: 2, max: 100 },
   { name: "channel_name", label: "Tên kênh", type: "text", min: 1, max: 150 },
-  { name: "contact_email", label: "Email liên hệ", type: "email", min: 3, max: 254 },
+  {
+    name: "contact_email",
+    label: "Email liên hệ",
+    type: "email",
+    min: 3,
+    max: 254,
+  },
   { name: "phone", label: "Số điện thoại", type: "tel", min: 8, max: 25 },
-  { name: "channel_url", label: "Đường dẫn kênh (https://)", type: "url", min: 1, max: 1000 },
-  { name: "content_field", label: "Lĩnh vực nội dung", type: "text", min: 1, max: 300 },
+  {
+    name: "channel_url",
+    label: "Đường dẫn kênh (https://)",
+    type: "url",
+    min: 1,
+    max: 1000,
+  },
+  {
+    name: "content_field",
+    label: "Lĩnh vực nội dung",
+    type: "text",
+    min: 1,
+    max: 300,
+  },
 ];
 
 const platforms = ["TikTok", "Facebook", "YouTube", "Instagram"];
@@ -130,7 +149,9 @@ export default function CreatorRegistrationPage() {
       if (error) {
         if (error.code === "23505") {
           setLoadFailed(true);
-          setMessage("Tài khoản đã gửi hồ sơ. Hãy tải lại trang để xem trạng thái.");
+          setMessage(
+            "Tài khoản đã gửi hồ sơ. Hãy tải lại trang để xem trạng thái.",
+          );
         } else {
           setMessage(`Chưa gửi được hồ sơ: ${error.message}`);
         }
@@ -147,19 +168,22 @@ export default function CreatorRegistrationPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#fffdf8] px-6 py-12 text-[#243c32]">
-      <div className="mx-auto max-w-2xl">
+    <main className="min-h-screen bg-[#e8f1dd] px-4 py-8 text-[#243c32] sm:px-6 sm:py-12">
+      <div className="mx-auto max-w-3xl rounded-3xl border border-green-100 bg-white p-6 shadow-sm sm:p-10">
         <Link href="/" className="font-semibold underline">
           ← Trang chủ Bloomie
         </Link>
 
-        <h1 className="mt-8 text-3xl font-extrabold">
+        <h1
+          className="mt-8 text-3xl font-bold leading-tight tracking-tight text-[#1f3d33] sm:text-4xl"
+          style={{ fontFamily: '"Be Vietnam Pro", Arial, sans-serif' }}
+        >
           Đăng ký trở thành Creator
         </h1>
 
         <p className="mt-4 leading-7 text-slate-600">
-          Giới thiệu kênh, lĩnh vực hoạt động và kinh nghiệm của bạn
-          để Bloomie xem xét cơ hội hợp tác.
+          Giới thiệu kênh, lĩnh vực hoạt động và kinh nghiệm của bạn để Bloomie
+          xem xét cơ hội hợp tác.
         </p>
 
         {loading ? (
@@ -261,8 +285,8 @@ export default function CreatorRegistrationPage() {
             <label className="flex items-start gap-3 text-sm leading-6">
               <input type="checkbox" required className="mt-1" />
               <span>
-                Tôi đồng ý gửi các thông tin trên cho Bloomie để xem xét
-                hồ sơ và liên hệ về việc hợp tác.
+                Tôi đồng ý gửi các thông tin trên cho Bloomie để xem xét hồ sơ
+                và liên hệ về việc hợp tác.
               </span>
             </label>
 
