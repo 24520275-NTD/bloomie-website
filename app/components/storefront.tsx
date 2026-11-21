@@ -11,9 +11,10 @@ import "../home.css";
 const navigation = [
   ["Danh mục", "#danh-muc"],
   ["Sản phẩm", "#san-pham"],
+  ["Học liệu", "/hoc-lieu"],
   ["Vì sao chọn Bloomie", "#loi-ich"],
-  ["Creator", "/creator/dang-ky"],
   ["Hỏi đáp", "#faq"],
+  ["Creator", "/creator/dang-ky"],
 ] as const;
 
 export default function Storefront({
