@@ -215,21 +215,47 @@ export default function CreatorAdminPage() {
           {message}
         </p>
         {allowed && (progressReady || applications.length === 0) && (
-          <dl className="mt-6 grid gap-3 sm:grid-cols-3">
-            {[
-              ["Chưa chấm", progressCounts.ungraded],
-              ["Chấm một phần", progressCounts.partial],
-              ["Đã chấm đủ", progressCounts.complete],
-            ].map(([label, count]) => (
-              <div
-                key={label}
-                className="rounded-xl border border-green-100 bg-white p-4"
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            {(
+              [
+                {
+                  value: "ungraded",
+                  label: "Chưa chấm",
+                  count: progressCounts.ungraded,
+                },
+                {
+                  value: "partial",
+                  label: "Chấm một phần",
+                  count: progressCounts.partial,
+                },
+                {
+                  value: "complete",
+                  label: "Đã chấm đủ",
+                  count: progressCounts.complete,
+                },
+              ] as const
+            ).map(({ value, label, count }) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={progressFilter === value}
+                disabled={!progressReady}
+                onClick={() =>
+                  setProgressFilter((current) =>
+                    current === value ? "all" : value,
+                  )
+                }
+                className={`rounded-xl border p-4 text-left ${
+                  progressFilter === value
+                    ? "border-green-400 bg-green-50"
+                    : "border-green-100 bg-white"
+                }`}
               >
-                <dt className="text-sm text-[#286347]">{label}</dt>
-                <dd className="mt-1 text-2xl font-bold">{count}</dd>
-              </div>
+                <span className="block text-sm text-[#286347]">{label}</span>
+                <span className="mt-1 block text-2xl font-bold">{count}</span>
+              </button>
             ))}
-          </dl>
+          </div>
         )}
 
         {allowed && (
