@@ -302,6 +302,22 @@ export default function CreatorAdminPage() {
                 className="min-w-56 rounded-lg border border-green-200 bg-white px-3 py-2"
               />
             </label>
+            <button
+              type="button"
+              className="rounded-lg border border-green-200 bg-white px-3 py-2 text-sm font-medium text-[#286347] disabled:opacity-50"
+              disabled={
+                statusFilter === "all" &&
+                progressFilter === "all" &&
+                search === ""
+              }
+              onClick={() => {
+                setStatusFilter("all");
+                setProgressFilter("all");
+                setSearch("");
+              }}
+            >
+              Xóa bộ lọc
+            </button>
             <p className="pb-2 text-sm" aria-live="polite">
               Hiển thị {visibleApplications.length}/{applications.length} hồ sơ
             </p>
