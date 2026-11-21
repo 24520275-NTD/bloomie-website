@@ -336,15 +336,17 @@ export default function CreatorAdminPage() {
               disabled={
                 statusFilter === "all" &&
                 progressFilter === "all" &&
-                search === ""
+                search === "" &&
+                sortOrder === "newest"
               }
               onClick={() => {
                 setStatusFilter("all");
                 setProgressFilter("all");
                 setSearch("");
+                setSortOrder("newest");
               }}
             >
-              Xóa bộ lọc
+              Đặt lại
             </button>
             <p className="pb-2 text-sm" aria-live="polite">
               Hiển thị {visibleApplications.length}/{applications.length} hồ sơ
