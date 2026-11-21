@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { createClient } from "../lib/supabase-browser";
+import type { ReactNode } from "react";
 
 const extensions: Record<string, string> = {
   "application/pdf": "pdf",
@@ -13,12 +14,14 @@ const extensions: Record<string, string> = {
 export default function CreatorEvidence({
   userId,
   canUpload = false,
+  renderReview,
 }: {
   userId: string;
   canUpload?: boolean;
+  renderReview?: (objectId: string) => ReactNode;
 }) {
   const [supabase] = useState(() => createClient());
-  const [files, setFiles] = useState<string[]>([]);
+  const [files, setFiles] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -42,7 +45,9 @@ export default function CreatorEvidence({
         if (error) throw error;
         if (active) {
           setFiles(
-            (data ?? []).filter((file) => file.id).map((file) => file.name),
+            (data ?? []).flatMap((file) =>
+              file.id ? [{ id: file.id, name: file.name }] : [],
+            ),
           );
         }
       } catch {
@@ -53,13 +58,13 @@ export default function CreatorEvidence({
     }
 
     void load();
+
     return () => {
       active = false;
     };
   }, [supabase, userId]);
 
-  async function upload(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function upload(event: SubmitEvent<HTMLFormElement>) {
     const form = event.currentTarget;
     const file = new FormData(form).get("evidence");
 
@@ -83,7 +88,7 @@ export default function CreatorEvidence({
     setBusy(true);
     setMessage("");
     try {
-      const { error } = await supabase.storage
+      const { data, error } = await supabase.storage
         .from("creator-evidence")
         .upload(`${userId}/${name}`, file, {
           contentType: file.type,
@@ -91,7 +96,7 @@ export default function CreatorEvidence({
         });
 
       if (error) throw error;
-      setFiles((current) => [name, ...current].slice(0, 100));
+      setFiles((current) => [{ id: data.id, name }, ...current].slice(0, 100));
       form.reset();
       setMessage("Đã tải minh chứng lên.");
     } catch (error) {
@@ -183,73 +188,73 @@ export default function CreatorEvidence({
       )}
 
       <ul className="space-y-2">
-  {files.map((name) => (
-    <li key={name} className="rounded-lg border bg-white p-3">
-      <p className="break-all text-sm">
-        {name.replace(/^[a-f0-9-]{36}--/, "")}
-      </p>
+        {files.map(({ id, name }) => (
+          <li key={id} className="rounded-lg border bg-white p-3">
+            <p className="break-all text-sm">
+              {name.replace(/^[a-f0-9-]{36}--/, "")}
+            </p>
+            {renderReview?.(id)}
+            <div className="mt-2 flex flex-wrap gap-4 text-sm">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void openPreview(name)}
+                className="font-semibold text-[#286347] underline disabled:opacity-50"
+              >
+                Xem trực tiếp
+              </button>
 
-      <div className="mt-2 flex flex-wrap gap-4 text-sm">
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void openPreview(name)}
-          className="font-semibold text-[#286347] underline disabled:opacity-50"
-        >
-          Xem trực tiếp
-        </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void download(name)}
+                className="text-slate-600 underline disabled:opacity-50"
+              >
+                Tải xuống
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
 
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void download(name)}
-          className="text-slate-600 underline disabled:opacity-50"
-        >
-          Tải xuống
-        </button>
-      </div>
-    </li>
-  ))}
-</ul>
+      {preview && (
+        <div className="space-y-3 rounded-xl border bg-white p-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="break-all text-sm font-semibold">{preview.name}</p>
+            <button
+              type="button"
+              onClick={() => setPreview(null)}
+              className="text-sm underline"
+            >
+              Đóng xem trước
+            </button>
+          </div>
 
-{preview && (
-  <div className="space-y-3 rounded-xl border bg-white p-3">
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="break-all text-sm font-semibold">{preview.name}</p>
-      <button
-        type="button"
-        onClick={() => setPreview(null)}
-        className="text-sm underline"
-      >
-        Đóng xem trước
-      </button>
-    </div>
+          {preview.name.toLowerCase().endsWith(".pdf") ? (
+            <iframe
+              src={preview.url}
+              title={`Xem PDF ${preview.name}`}
+              className="h-[65vh] w-full rounded-lg border"
+            />
+          ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={preview.url}
+              alt={preview.name}
+              className="mx-auto max-h-[65vh] max-w-full object-contain"
+            />
+          )}
 
-    {preview.name.toLowerCase().endsWith(".pdf") ? (
-      <iframe
-        src={preview.url}
-        title={`Xem PDF ${preview.name}`}
-        className="h-[65vh] w-full rounded-lg border"
-      />
-    ) : (
-      /* eslint-disable-next-line @next/next/no-img-element */
-      <img
-        src={preview.url}
-        alt={preview.name}
-        className="mx-auto max-h-[65vh] max-w-full object-contain"
-      />
-    )}
-
-    <a
-      href={preview.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-block text-sm text-[#286347] underline"
-    >
-      Mở trong tab mới
-    </a>
-  </div>
-)}
+          <a
+            href={preview.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-sm text-[#286347] underline"
+          >
+            Mở trong tab mới
+          </a>
+        </div>
+      )}
 
       {message && (
         <p role="status" className="text-sm">

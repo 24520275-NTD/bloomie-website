@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import CreatorEvidence from "../../../components/creator-evidence";
+import CreatorProfileReview from "../creator-profile-review";
 import { createClient } from "../../../lib/supabase-browser";
 import CreatorAvatar from "../creator-avatar";
 
@@ -143,14 +143,12 @@ export default function CreatorProfilePage() {
               </p>
             </section>
 
-            <section className="mt-5 rounded-xl border border-green-200 bg-white p-4">
-              <h2 className="mb-3 font-semibold">Minh chứng</h2>
-              {currentProfile.user_id ? (
-                <CreatorEvidence userId={currentProfile.user_id} />
-              ) : (
-                <p>Hồ sơ chưa gắn với tài khoản Creator để xem minh chứng.</p>
-              )}
-            </section>
+            <CreatorProfileReview
+              key={currentProfile.id}
+              applicationId={currentProfile.id}
+              userId={currentProfile.user_id}
+              supabase={supabase}
+            />
           </>
         )}
       </div>
