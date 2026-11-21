@@ -6,6 +6,7 @@ import { createClient } from "../../lib/supabase-browser";
 import CreatorEvidence from "../../components/creator-evidence";
 import CreatorEvaluation from "./creator-evaluation";
 import CreatorIntakeForm from "./creator-intake-form";
+import CreatorAvatar from "./creator-avatar";
 import { creatorRubric } from "./creator-rubric";
 
 const labels = {
@@ -400,6 +401,12 @@ export default function CreatorAdminPage() {
                   <summary className="cursor-pointer font-semibold text-[#286347]">
                     Xem chi tiết hồ sơ
                   </summary>
+
+                  <CreatorAvatar
+                    applicationId={item.id}
+                    fullName={item.full_name}
+                    supabase={supabase}
+                  />
 
                   <div className="mt-4 space-y-2 break-words text-sm leading-6">
                     <p>
