@@ -32,7 +32,13 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting.current || !items.length || missingIds.length || hasMissingPrice) return;
+    if (
+      submitting.current ||
+      !items.length ||
+      missingIds.length ||
+      hasMissingPrice
+    )
+      return;
 
     if (!hasSupabaseConfig) {
       setMessage("Chưa có cấu hình kết nối để đặt hàng.");
@@ -54,7 +60,9 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
 
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user) {
         setNeedsLogin(true);
@@ -84,10 +92,14 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
       if (typeof data === "string" && data) {
         setOrderId(data);
       } else {
-        setMessage("Chưa nhận được mã đơn. Bạn có thể thử lại với thông tin hiện tại.");
+        setMessage(
+          "Chưa nhận được mã đơn. Bạn có thể thử lại với thông tin hiện tại.",
+        );
       }
     } catch {
-      setMessage("Chưa xác nhận được kết quả. Bạn có thể thử lại với thông tin hiện tại.");
+      setMessage(
+        "Chưa xác nhận được kết quả. Bạn có thể thử lại với thông tin hiện tại.",
+      );
     } finally {
       submitting.current = false;
       setBusy(false);
@@ -100,13 +112,20 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
         <h2 className="font-bold">Đã tạo đơn hàng</h2>
         <p className="mt-2 break-all">Mã đơn {orderId}</p>
         <p className="mt-2">Trạng thái: Chờ thanh toán</p>
+        <Link href={`/don-hang/${orderId}`} className="bloomie-button mt-4">
+          Xem chi tiết đơn hàng
+        </Link>
       </section>
     );
   }
 
   if (!ready) return <p className="mt-4">Đang tải giỏ hàng…</p>;
   if (storageUnavailable) {
-    return <p role="alert" className="mt-4">Trình duyệt chưa cho phép đọc giỏ hàng.</p>;
+    return (
+      <p role="alert" className="mt-4">
+        Trình duyệt chưa cho phép đọc giỏ hàng.
+      </p>
+    );
   }
 
   if (missingIds.length > 0) {
@@ -134,8 +153,12 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
   if (!items.length || hasMissingPrice) {
     return (
       <p className="mt-4">
-        {hasMissingPrice ? "Giỏ có sản phẩm chưa có giá." : "Giỏ hàng đang trống."}{" "}
-        <Link href="/gio-hang" className="underline">Về giỏ hàng</Link>
+        {hasMissingPrice
+          ? "Giỏ có sản phẩm chưa có giá."
+          : "Giỏ hàng đang trống."}{" "}
+        <Link href="/gio-hang" className="underline">
+          Về giỏ hàng
+        </Link>
       </p>
     );
   }
@@ -146,15 +169,36 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
       <fieldset disabled={busy} className="space-y-4">
         <label className="block">
           Tên người nhận
-          <input name="name" autoComplete="name" required maxLength={120} className="bloomie-field mt-1" />
+          <input
+            name="name"
+            autoComplete="name"
+            required
+            maxLength={120}
+            className="bloomie-field mt-1"
+          />
         </label>
         <label className="block">
           Số điện thoại
-          <input name="phone" type="tel" autoComplete="tel" required minLength={8} maxLength={25} className="bloomie-field mt-1" />
+          <input
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            required
+            minLength={8}
+            maxLength={25}
+            className="bloomie-field mt-1"
+          />
         </label>
         <label className="block">
           Địa chỉ giao hàng
-          <textarea name="address" autoComplete="street-address" required maxLength={500} rows={3} className="bloomie-field mt-1 py-2" />
+          <textarea
+            name="address"
+            autoComplete="street-address"
+            required
+            maxLength={500}
+            rows={3}
+            className="bloomie-field mt-1 py-2"
+          />
         </label>
       </fieldset>
       <button type="submit" disabled={busy} className="bloomie-button">
@@ -163,7 +207,9 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
       {message && <p role="status">{message}</p>}
       {needsLogin && (
         <p>
-          <Link href="/dang-nhap" className="underline">Đăng nhập</Link>
+          <Link href="/dang-nhap" className="underline">
+            Đăng nhập
+          </Link>
           {" rồi quay lại trang Đặt hàng."}
         </p>
       )}
