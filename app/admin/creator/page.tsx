@@ -218,8 +218,8 @@ export default function CreatorAdminPage() {
   return (
     <main className="min-h-screen bg-[#fffdf8] p-8 text-[#243c32]">
       <div className="mx-auto max-w-3xl">
-        <Link href="/tai-khoan" className="underline">
-          Tài khoản Bloomie
+        <Link href="/" className="underline">
+          Trở về trang chủ
         </Link>
         <h1 className="mt-6 text-3xl font-bold">Duyệt hồ sơ Creator</h1>
         <p role="status" className="mt-4">
