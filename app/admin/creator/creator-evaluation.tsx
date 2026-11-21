@@ -5,7 +5,34 @@ import { createClient } from "../../lib/supabase-browser";
 import { creatorRubric } from "./creator-rubric";
 
 type Scores = Partial<Record<(typeof creatorRubric)[number]["id"], number>>;
+const creatorWeights = {
+  A1: 10,
+  A2: 5,
+  B1: 5,
+  B2: 5,
+  C1: 5,
+  C2: 5,
+  D1: 5,
+  D2: 5,
+  E1: 7.5,
+  E2: 7.5,
+  F1: 10,
+  F2: 5,
+  G1: 15,
+  G2: 10,
+} satisfies Record<keyof Scores, number>;
 
+const gradeThresholds = [
+  { min: 90, label: "A – Xuất sắc" },
+  { min: 80, label: "B – Tốt" },
+  { min: 65, label: "C – Khá" },
+  { min: 50, label: "D – Trung bình" },
+  { min: 0, label: "E – Không đạt" },
+];
+
+const scoreFormat = new Intl.NumberFormat("vi-VN", {
+  maximumFractionDigits: 3,
+});
 export default function CreatorEvaluation({
   applicationId,
   onSaved,
@@ -29,6 +56,25 @@ export default function CreatorEvaluation({
   const gradedCount = gradedScores.length;
   const totalScore = gradedScores.reduce((sum, score) => sum + score, 0);
   const maxScore = gradedCount * 4;
+  const weighted = creatorRubric.reduce(
+    (result, { id }) => {
+      const score = scores[id];
+      if (typeof score !== "number") return result;
+
+      const weight = creatorWeights[id];
+
+      return {
+        points: result.points + (score / 4) * weight,
+        possible: result.possible + weight,
+      };
+    },
+    { points: 0, possible: 0 },
+  );
+
+  const grade =
+    gradedCount === creatorRubric.length
+      ? gradeThresholds.find(({ min }) => weighted.points >= min)?.label
+      : undefined;
 
   useEffect(() => {
     let active = true;
@@ -130,6 +176,13 @@ export default function CreatorEvaluation({
               Đã chấm {gradedCount}/{creatorRubric.length} tiêu chí
               {gradedCount > 0 && ` · ${totalScore}/${maxScore} điểm`}
             </p>
+            {gradedCount > 0 && (
+              <p className="mt-1">
+                Điểm theo trọng số: {scoreFormat.format(weighted.points)}/
+                {scoreFormat.format(weighted.possible)}
+                {grade ? ` · Xếp loại ${grade}` : " · Tạm tính, chưa xếp loại"}
+              </p>
+            )}
             {gradedCount === 0 && (
               <p className="mt-1">
                 Chọn điểm cho ít nhất một tiêu chí để xem tổng điểm.
@@ -137,10 +190,11 @@ export default function CreatorEvaluation({
             )}
           </div>
           {hasUnsavedChanges && (
-  <p role="status" className="text-sm font-medium text-amber-800">
-    Có thay đổi chưa lưu. Hãy bấm Lưu điểm Creator trước khi đóng bảng.
-  </p>
-)}
+            <p role="status" className="text-sm font-medium text-amber-800">
+              Có thay đổi chưa lưu. Hãy bấm Lưu điểm Creator trước khi đóng
+              bảng.
+            </p>
+          )}
           <button
             disabled={busy}
             className="rounded-lg bg-[#286347] px-4 py-2 text-white disabled:opacity-50"
