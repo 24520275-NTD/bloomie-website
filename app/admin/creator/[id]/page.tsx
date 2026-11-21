@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import CreatorProfileReview from "../creator-profile-review";
+import CreatorCollaborations from "../creator-collaborations";
 import { createClient } from "../../../lib/supabase-browser";
 import CreatorAvatar from "../creator-avatar";
 
@@ -147,6 +148,11 @@ export default function CreatorProfilePage() {
               key={currentProfile.id}
               applicationId={currentProfile.id}
               userId={currentProfile.user_id}
+              supabase={supabase}
+            />
+            <CreatorCollaborations
+              key={currentProfile.id}
+              applicationId={currentProfile.id}
               supabase={supabase}
             />
           </>
