@@ -41,7 +41,11 @@ export default function CreatorAdminPage() {
   > | null>(null);
   const [progressError, setProgressError] = useState(false);
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
+  const [progressFilter, setProgressFilter] = useState<
+    "all" | "ungraded" | "partial" | "complete"
+  >("all");
 
+  const progressReady = progressById !== null && !progressError;
   const [search, setSearch] = useState("");
   const [evaluationId, setEvaluationId] = useState<string | null>(null);
   const query = search.trim().toLocaleLowerCase("vi");
@@ -54,7 +58,18 @@ export default function CreatorAdminPage() {
       item.platform,
       item.content_field,
     ].some((value) => value?.toLocaleLowerCase("vi").includes(query));
-    return matchesStatus && matchesSearch;
+    if (!matchesStatus || !matchesSearch) return false;
+    if (progressFilter === "all" || !progressReady) return true;
+
+    const gradedCount = progressById?.[item.id] ?? 0;
+    const totalCriteria = creatorRubric.length;
+
+    if (progressFilter === "ungraded") return gradedCount === 0;
+    if (progressFilter === "partial") {
+      return gradedCount > 0 && gradedCount < totalCriteria;
+    }
+
+    return gradedCount === totalCriteria;
   });
   const [allowed, setAllowed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -202,7 +217,22 @@ export default function CreatorAdminPage() {
                 <option value="rejected">{labels.rejected}</option>
               </select>
             </label>
-
+            <label className="grid gap-2 text-sm font-medium">
+              Tiến độ chấm
+              <select
+                className="rounded-lg border border-green-200 bg-white px-3 py-2"
+                value={progressFilter}
+                disabled={!progressReady}
+                onChange={(event) =>
+                  setProgressFilter(event.target.value as typeof progressFilter)
+                }
+              >
+                <option value="all">Tất cả tiến độ</option>
+                <option value="ungraded">Chưa chấm</option>
+                <option value="partial">Chấm một phần</option>
+                <option value="complete">Đã chấm đủ</option>
+              </select>
+            </label>
             <label className="grid flex-1 gap-2 text-sm font-medium">
               Tìm hồ sơ Creator
               <input
