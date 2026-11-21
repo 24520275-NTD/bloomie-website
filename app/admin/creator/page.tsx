@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "../../lib/supabase-browser";
-import CreatorEvidence from "../../components/creator-evidence";
 import CreatorEvaluation from "./creator-evaluation";
 import CreatorIntakeForm from "./creator-intake-form";
-import CreatorAvatar from "./creator-avatar";
 import { creatorRubric } from "./creator-rubric";
 
 const labels = {
@@ -397,48 +395,12 @@ export default function CreatorAdminPage() {
                 <p className="text-sm font-medium text-[#286347]">
                   {getProgressLabel(item.id)}
                 </p>
-                <details className="rounded-xl bg-[#f5f8f1] p-4">
-                  <summary className="cursor-pointer font-semibold text-[#286347]">
-                    Xem chi tiết hồ sơ
-                  </summary>
-
-                  <CreatorAvatar
-                    applicationId={item.id}
-                    fullName={item.full_name}
-                    supabase={supabase}
-                  />
-
-                  <div className="mt-4 space-y-2 break-words text-sm leading-6">
-                    <p>
-                      <strong>Email:</strong> {item.contact_email}
-                    </p>
-                    <p>
-                      <strong>Điện thoại:</strong> {item.phone}
-                    </p>
-                    <p>
-                      <strong>Đường dẫn kênh:</strong> {item.channel_url}
-                    </p>
-                    <p>
-                      <strong>Lĩnh vực:</strong> {item.content_field}
-                    </p>
-                    <p>
-                      <strong>Người theo dõi:</strong>{" "}
-                      {item.followers.toLocaleString("vi-VN")}
-                    </p>
-                    <p className="whitespace-pre-wrap">
-                      <strong>Giới thiệu:</strong>{" "}
-                      {item.introduction || "Chưa bổ sung"}
-                    </p>
-                    <p className="whitespace-pre-wrap">
-                      <strong>Kinh nghiệm:</strong>{" "}
-                      {item.professional_background || "Chưa bổ sung"}
-                    </p>
-                  </div>
-                  <CreatorEvidence key={item.user_id} userId={item.user_id} />
-                  {item.user_id && (
-                    <CreatorEvidence key={item.user_id} userId={item.user_id} />
-                  )}
-                </details>
+                <Link
+                  href={`/admin/creator/${item.id}`}
+                  className="inline-block font-semibold text-[#286347] underline"
+                >
+                  Xem chi tiết hồ sơ
+                </Link>
                 <label className="block">
                   Trạng thái
                   <select
