@@ -15,6 +15,10 @@ export default function CreatorEvaluation({
 }) {
   const [supabase] = useState(() => createClient());
   const [scores, setScores] = useState<Scores>({});
+  const [savedScores, setSavedScores] = useState<Scores>({});
+  const hasUnsavedChanges = creatorRubric.some(
+    ({ id }) => scores[id] !== savedScores[id],
+  );
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -38,7 +42,9 @@ export default function CreatorEvaluation({
           .maybeSingle();
         if (error) throw error;
         if (active) {
-          setScores(data?.scores ?? {});
+          const loadedScores = data?.scores ?? {};
+          setScores(loadedScores);
+          setSavedScores(loadedScores);
           setReady(true);
         }
       } catch {
@@ -67,6 +73,7 @@ export default function CreatorEvaluation({
       );
       if (error) throw error;
       onSaved?.(gradedCount);
+      setSavedScores(scores);
       setMessage("Đã lưu bảng đánh giá.");
     } catch {
       setMessage("Chưa lưu được bảng đánh giá. Bạn có thể thử lại.");
@@ -96,6 +103,7 @@ export default function CreatorEvaluation({
                   className="w-full rounded-lg border border-green-200 bg-white px-3 py-2"
                   onChange={({ target }) => {
                     const value = target.value;
+                    setMessage("");
                     setScores((previous) => {
                       const next = { ...previous };
                       if (value === "") delete next[id];
@@ -128,6 +136,11 @@ export default function CreatorEvaluation({
               </p>
             )}
           </div>
+          {hasUnsavedChanges && (
+  <p role="status" className="text-sm font-medium text-amber-800">
+    Có thay đổi chưa lưu. Hãy bấm Lưu điểm Creator trước khi đóng bảng.
+  </p>
+)}
           <button
             disabled={busy}
             className="rounded-lg bg-[#286347] px-4 py-2 text-white disabled:opacity-50"
