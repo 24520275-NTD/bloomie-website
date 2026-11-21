@@ -63,6 +63,9 @@ export default function CreatorAdminPage() {
     { ungraded: 0, partial: 0, complete: 0 },
   );
   const [search, setSearch] = useState("");
+  const [sortOrder, setSortOrder] = useState<
+    "newest" | "least-graded" | "most-graded"
+  >("newest");
   const [evaluationId, setEvaluationId] = useState<string | null>(null);
   const query = search.trim().toLocaleLowerCase("vi");
   const visibleApplications = applications.filter((item) => {
@@ -87,6 +90,14 @@ export default function CreatorAdminPage() {
 
     return gradedCount === totalCriteria;
   });
+  if (progressReady && sortOrder !== "newest") {
+    visibleApplications.sort((a, b) => {
+      const aCount = progressById?.[a.id] ?? 0;
+      const bCount = progressById?.[b.id] ?? 0;
+
+      return sortOrder === "least-graded" ? aCount - bCount : bCount - aCount;
+    });
+  }
   const [allowed, setAllowed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("Đang kiểm tra quyền quản trị…");
@@ -290,6 +301,23 @@ export default function CreatorAdminPage() {
                 <option value="ungraded">Chưa chấm</option>
                 <option value="partial">Chấm một phần</option>
                 <option value="complete">Đã chấm đủ</option>
+              </select>
+            </label>
+            <label className="grid gap-2 text-sm font-medium">
+              Sắp xếp hồ sơ
+              <select
+                className="rounded-lg border border-green-200 bg-white px-3 py-2"
+                value={sortOrder}
+                disabled={!progressReady}
+                onChange={(event) =>
+                  setSortOrder(event.target.value as typeof sortOrder)
+                }
+              >
+                <option value="newest">Mới nhất</option>
+                <option value="least-graded">Ít tiêu chí đã chấm trước</option>
+                <option value="most-graded">
+                  Nhiều tiêu chí đã chấm trước
+                </option>
               </select>
             </label>
             <label className="grid flex-1 gap-2 text-sm font-medium">
