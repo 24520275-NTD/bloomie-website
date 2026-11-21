@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "../../lib/supabase-browser";
 import CreatorEvidence from "../../components/creator-evidence";
 import CreatorEvaluation from "./creator-evaluation";
+import { creatorRubric } from "./creator-rubric";
 
 const labels = {
   pending: "Chờ xét duyệt",
@@ -34,15 +35,25 @@ type Application = {
 export default function CreatorAdminPage() {
   const [supabase] = useState(() => createClient());
   const [applications, setApplications] = useState<Application[]>([]);
+  const [progressById, setProgressById] = useState<Record<
+    string,
+    number
+  > | null>(null);
+  const [progressError, setProgressError] = useState(false);
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
 
   const [search, setSearch] = useState("");
   const [evaluationId, setEvaluationId] = useState<string | null>(null);
   const query = search.trim().toLocaleLowerCase("vi");
   const visibleApplications = applications.filter((item) => {
-    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
-    const matchesSearch = [item.full_name, item.channel_name, item.platform, item.content_field]
-      .some((value) => value?.toLocaleLowerCase("vi").includes(query));
+    const matchesStatus =
+      statusFilter === "all" || item.status === statusFilter;
+    const matchesSearch = [
+      item.full_name,
+      item.channel_name,
+      item.platform,
+      item.content_field,
+    ].some((value) => value?.toLocaleLowerCase("vi").includes(query));
     return matchesStatus && matchesSearch;
   });
   const [allowed, setAllowed] = useState(false);
@@ -81,6 +92,32 @@ export default function CreatorAdminPage() {
         setApplications(data ?? []);
         setAllowed(true);
         setMessage("");
+        const applicationIds = (data ?? []).map(({ id }) => id);
+
+        if (applicationIds.length > 0) {
+          try {
+            const { data: evaluations, error: evaluationError } = await supabase
+              .from("creator_evaluations")
+              .select("application_id,scores")
+              .in("application_id", applicationIds);
+
+            if (evaluationError) throw evaluationError;
+            if (!active) return;
+
+            const nextProgress: Record<string, number> = {};
+
+            for (const evaluation of evaluations ?? []) {
+              nextProgress[evaluation.application_id] = creatorRubric.filter(
+                ({ id }) => typeof evaluation.scores?.[id] === "number",
+              ).length;
+            }
+
+            setProgressById(nextProgress);
+            setProgressError(false);
+          } catch {
+            if (active) setProgressError(true);
+          }
+        }
       } catch {
         if (active) {
           setMessage(
@@ -122,7 +159,20 @@ export default function CreatorAdminPage() {
       setBusy(false);
     }
   }
+  function getProgressLabel(applicationId: string) {
+    if (progressError) return "Chưa tải được tiến độ";
+    if (progressById === null) return "Đang tải tiến độ…";
 
+    const gradedCount = progressById[applicationId] ?? 0;
+    const totalCriteria = creatorRubric.length;
+
+    if (gradedCount === 0) return "Chưa chấm";
+    if (gradedCount === totalCriteria) {
+      return `Đã chấm đủ ${gradedCount}/${totalCriteria} tiêu chí`;
+    }
+
+    return `Đã chấm ${gradedCount}/${totalCriteria} tiêu chí`;
+  }
   return (
     <main className="min-h-screen bg-[#fffdf8] p-8 text-[#243c32]">
       <div className="mx-auto max-w-3xl">
@@ -185,7 +235,9 @@ export default function CreatorAdminPage() {
                 className="space-y-4 p-5"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  const status = new FormData(event.currentTarget).get("status");
+                  const status = new FormData(event.currentTarget).get(
+                    "status",
+                  );
                   if (
                     typeof status === "string" &&
                     Object.hasOwn(labels, status)
@@ -197,6 +249,9 @@ export default function CreatorAdminPage() {
                 <h2 className="text-xl font-bold">{item.full_name}</h2>
                 <p>
                   {item.channel_name} · {item.platform}
+                </p>
+                <p className="text-sm font-medium text-[#286347]">
+                  {getProgressLabel(item.id)}
                 </p>
                 <details className="rounded-xl bg-[#f5f8f1] p-4">
                   <summary className="cursor-pointer font-semibold text-[#286347]">
@@ -254,16 +309,35 @@ export default function CreatorAdminPage() {
                   Lưu trạng thái
                 </button>
               </form>
-              <section className="rounded-b-2xl border-t border-green-100 bg-[#f5f8f1] p-5" aria-label="Chấm điểm hồ sơ">
+              <section
+                className="rounded-b-2xl border-t border-green-100 bg-[#f5f8f1] p-5"
+                aria-label="Chấm điểm hồ sơ"
+              >
                 <button
                   type="button"
                   className="font-semibold text-[#286347] underline"
                   aria-expanded={evaluationId === item.id}
-                  onClick={() => setEvaluationId((current) => current === item.id ? null : item.id)}
+                  onClick={() =>
+                    setEvaluationId((current) =>
+                      current === item.id ? null : item.id,
+                    )
+                  }
                 >
-                  {evaluationId === item.id ? "Đóng bảng đánh giá" : "Đánh giá Creator"}
+                  {evaluationId === item.id
+                    ? "Đóng bảng đánh giá"
+                    : "Đánh giá Creator"}
                 </button>
-                {evaluationId === item.id && <CreatorEvaluation applicationId={item.id} />}
+                {evaluationId === item.id && (
+                  <CreatorEvaluation
+                    applicationId={item.id}
+                    onSaved={(gradedCount) => {
+                      setProgressById((previous) => ({
+                        ...(previous ?? {}),
+                        [item.id]: gradedCount,
+                      }));
+                    }}
+                  />
+                )}
               </section>
             </article>
           ))}

@@ -8,8 +8,10 @@ type Scores = Partial<Record<(typeof creatorRubric)[number]["id"], number>>;
 
 export default function CreatorEvaluation({
   applicationId,
+  onSaved,
 }: {
   applicationId: string;
+  onSaved?: (gradedCount: number) => void;
 }) {
   const [supabase] = useState(() => createClient());
   const [scores, setScores] = useState<Scores>({});
@@ -64,6 +66,7 @@ export default function CreatorEvaluation({
         { onConflict: "application_id" },
       );
       if (error) throw error;
+      onSaved?.(gradedCount);
       setMessage("Đã lưu bảng đánh giá.");
     } catch {
       setMessage("Chưa lưu được bảng đánh giá. Bạn có thể thử lại.");
