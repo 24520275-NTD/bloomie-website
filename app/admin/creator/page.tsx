@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "../../lib/supabase-browser";
 import CreatorEvidence from "../../components/creator-evidence";
 import CreatorEvaluation from "./creator-evaluation";
+import CreatorIntakeForm from "./creator-intake-form";
 import { creatorRubric } from "./creator-rubric";
 
 const labels = {
@@ -18,7 +19,7 @@ type Status = keyof typeof labels;
 
 type Application = {
   id: string;
-  user_id: string;
+  user_id: string | null;
   full_name: string;
   channel_name: string;
   platform: string;
@@ -35,6 +36,7 @@ type Application = {
 export default function CreatorAdminPage() {
   const [supabase] = useState(() => createClient());
   const [applications, setApplications] = useState<Application[]>([]);
+  const [listVersion, setListVersion] = useState(0);
   const [progressById, setProgressById] = useState<Record<
     string,
     number
@@ -173,7 +175,7 @@ export default function CreatorAdminPage() {
     return () => {
       active = false;
     };
-  }, [supabase]);
+  }, [supabase, listVersion]);
 
   async function saveStatus(id: string, status: Status) {
     setBusy(true);
@@ -222,6 +224,12 @@ export default function CreatorAdminPage() {
           Trở về trang chủ
         </Link>
         <h1 className="mt-6 text-3xl font-bold">Duyệt hồ sơ Creator</h1>
+        {allowed && (
+          <CreatorIntakeForm
+            supabase={supabase}
+            onCreated={() => setListVersion((version) => version + 1)}
+          />
+        )}
         <p role="status" className="mt-4">
           {message}
         </p>
@@ -420,6 +428,9 @@ export default function CreatorAdminPage() {
                     </p>
                   </div>
                   <CreatorEvidence key={item.user_id} userId={item.user_id} />
+                  {item.user_id && (
+                    <CreatorEvidence key={item.user_id} userId={item.user_id} />
+                  )}
                 </details>
                 <label className="block">
                   Trạng thái
