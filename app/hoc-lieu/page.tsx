@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import Storefront from "../components/storefront";
 import { createClient, hasSupabaseConfig } from "../lib/supabase-browser";
+import LearningLibrary from "./learning-library";
 
 export default function LearningPage() {
   const [code, setCode] = useState("");
@@ -11,6 +12,7 @@ export default function LearningPage() {
   const [packTitle, setPackTitle] = useState("");
   const [error, setError] = useState("");
   const [needsLogin, setNeedsLogin] = useState(false);
+  const [libraryVersion, setLibraryVersion] = useState(0);
 
   async function redeemCode(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -33,7 +35,9 @@ export default function LearningPage() {
 
     try {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!session) {
         setNeedsLogin(true);
@@ -64,6 +68,7 @@ export default function LearningPage() {
       }
 
       setPackTitle(data);
+      setLibraryVersion((version) => version + 1);
       setCode("");
     } catch {
       setError("Chưa kết nối được. Bạn thử lại sau nhé.");
@@ -104,7 +109,11 @@ export default function LearningPage() {
           </button>
         </form>
 
-        {error && <p role="alert" className="mt-4 text-red-700">{error}</p>}
+        {error && (
+          <p role="alert" className="mt-4 text-red-700">
+            {error}
+          </p>
+        )}
 
         {needsLogin && (
           <Link href="/dang-nhap" className="mt-3 inline-block underline">
@@ -117,6 +126,7 @@ export default function LearningPage() {
             Đã kích hoạt bộ học liệu <strong>{packTitle}</strong>.
           </p>
         )}
+        <LearningLibrary key={libraryVersion} />
       </main>
     </Storefront>
   );
