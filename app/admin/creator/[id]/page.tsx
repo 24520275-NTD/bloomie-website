@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import CreatorProfileReview from "../creator-profile-review";
 import CreatorCollaborations from "../creator-collaborations";
+import CreatorQualifications from "../creator-qualifications";
 import { createClient } from "../../../lib/supabase-browser";
 import CreatorAvatar from "../creator-avatar";
 
@@ -143,6 +144,12 @@ export default function CreatorProfilePage() {
                   "Chưa bổ sung chuyên môn và kinh nghiệm."}
               </p>
             </section>
+            
+            <CreatorQualifications
+              key={currentProfile.id}
+              applicationId={currentProfile.id}
+              supabase={supabase}
+            />
 
             <CreatorProfileReview
               key={currentProfile.id}
