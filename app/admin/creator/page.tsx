@@ -46,6 +46,22 @@ export default function CreatorAdminPage() {
   >("all");
 
   const progressReady = progressById !== null && !progressError;
+  const progressCounts = applications.reduce(
+    (counts, item) => {
+      const gradedCount = progressById?.[item.id] ?? 0;
+
+      if (gradedCount === 0) {
+        counts.ungraded += 1;
+      } else if (gradedCount === creatorRubric.length) {
+        counts.complete += 1;
+      } else {
+        counts.partial += 1;
+      }
+
+      return counts;
+    },
+    { ungraded: 0, partial: 0, complete: 0 },
+  );
   const [search, setSearch] = useState("");
   const [evaluationId, setEvaluationId] = useState<string | null>(null);
   const query = search.trim().toLocaleLowerCase("vi");
@@ -198,6 +214,23 @@ export default function CreatorAdminPage() {
         <p role="status" className="mt-4">
           {message}
         </p>
+        {allowed && (progressReady || applications.length === 0) && (
+          <dl className="mt-6 grid gap-3 sm:grid-cols-3">
+            {[
+              ["Chưa chấm", progressCounts.ungraded],
+              ["Chấm một phần", progressCounts.partial],
+              ["Đã chấm đủ", progressCounts.complete],
+            ].map(([label, count]) => (
+              <div
+                key={label}
+                className="rounded-xl border border-green-100 bg-white p-4"
+              >
+                <dt className="text-sm text-[#286347]">{label}</dt>
+                <dd className="mt-1 text-2xl font-bold">{count}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
 
         {allowed && (
           <div className="mt-6 flex flex-wrap items-end gap-4">
