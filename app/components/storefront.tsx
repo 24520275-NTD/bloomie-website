@@ -43,10 +43,10 @@ export default function Storefront({
     <div className="bloomie-storefront flex min-h-screen flex-col bg-[#fffdf8] text-[#1f3d33]">
       {showHeader && (
         <header className="border-b border-[#1f3d33]/8 bg-[#fffdf8]/95">
-          <div className="mx-auto flex min-h-18 max-w-[1200px] flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-3 md:min-h-20 md:px-8">
+          <div className="flex min-h-18 w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-3 md:min-h-20 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
             <a
               href={home ? "#top" : "/"}
-              className="group rounded-md text-[25px] font-extrabold tracking-[-.04em] outline-none focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
+              className="group rounded-md text-[25px] font-extrabold tracking-[-.04em] outline-none focus-visible:ring-3 focus-visible:ring-[#f58220]/50 lg:justify-self-start"
               aria-label="Bloomie - Trang chủ"
             >
               bloomie
@@ -71,7 +71,7 @@ export default function Storefront({
                 </Link>
               ))}
             </nav>
-            <div className="flex items-center gap-2 lg:gap-6">
+            <div className="flex items-center gap-2 lg:justify-self-end lg:gap-6">
               <Link
                 href="/gio-hang"
                 aria-current={pathname === "/gio-hang" ? "page" : undefined}
@@ -120,7 +120,7 @@ export default function Storefront({
       )}
       {children}
       <footer className="mt-auto border-t border-[#1f3d33]/10">
-        <div className="mx-auto grid max-w-[1200px] gap-10 px-5 py-12 md:grid-cols-2 md:px-8 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div className="flex min-h-18 w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-3 md:min-h-20 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
           <div>
             <a
               href={home ? "#top" : "/"}
