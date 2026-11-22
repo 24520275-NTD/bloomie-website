@@ -66,6 +66,7 @@ export default function Storefront({
                     !home && pathname === homeLink(href) ? "page" : undefined
                   }
                   className="rounded-sm py-2 text-lg font-bold whitespace-nowrap text-[#346b56] outline-none transition-colors decoration-2 underline-offset-[6px] hover:text-[#245c45] hover:underline focus-visible:ring-3 focus-visible:ring-[#f58220]/50 xl:text-xl"
+                >
                   {item}
                 </Link>
               ))}
