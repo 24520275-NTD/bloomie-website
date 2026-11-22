@@ -245,12 +245,18 @@ export default function CreatorAdminPage() {
       <div className="mx-auto max-w-[1440px]">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <Link
-              href="/"
-              className="inline-block rounded-full bg-[#edf4e7] px-3 py-1 text-xs font-bold uppercase text-[#245c45] hover:underline"
-            >
+            <div className="mb-4">
+              <Link
+                href="/"
+                className="inline-flex rounded-full border border-[#dce4d9] px-3 py-1.5 text-xs font-semibold hover:bg-white"
+              >
+                ← Trang chủ Bloomie
+              </Link>
+            </div>
+            
+            <p className="inline-flex rounded-full bg-[#edf4e7] px-3 py-1 text-xs font-bold uppercase text-[#245c45]">
               Quản trị hệ thống
-            </Link>
+            </p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
               Duyệt hồ sơ Creator
             </h1>
