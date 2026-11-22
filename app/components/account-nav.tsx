@@ -6,7 +6,10 @@ import type { User } from "@supabase/supabase-js";
 import { createClient, hasSupabaseConfig } from "../lib/supabase-browser";
 
 const signInLink = (
-  <Link href="/dang-nhap" className="rounded-full px-2.5 py-2 text-sm font-semibold text-[#245c45] hover:bg-[#e8f1dd] sm:px-4">
+  <Link
+    href="/dang-nhap"
+    className="rounded-full px-2.5 py-2 text-sm font-semibold text-[#245c45] hover:bg-[#e8f1dd] sm:px-4"
+  >
     Đăng nhập
   </Link>
 );
@@ -76,15 +79,6 @@ function ConnectedAccountNav() {
 
   return (
     <>
-      {adminId === user.id && (
-        <Link
-          href="/admin/creator"
-          className="font-semibold text-[#286347] hover:underline"
-        >
-          Duyệt hồ sơ Creator
-        </Link>
-      )}
-
       <details
         className="relative"
         onKeyDown={(event) => {
@@ -111,6 +105,14 @@ function ConnectedAccountNav() {
           >
             Thông tin tài khoản
           </Link>
+          {adminId === user.id && (
+            <Link
+              href="/admin/creator"
+              className="block rounded-xl px-3 py-3 font-semibold text-[#286347] hover:bg-green-50"
+            >
+              Duyệt hồ sơ Creator
+            </Link>
+          )}
           <button
             type="button"
             onClick={signOut}
@@ -119,7 +121,11 @@ function ConnectedAccountNav() {
           >
             {signingOut ? "Đang đăng xuất…" : "Đăng xuất"}
           </button>
-          {message && <p role="alert" className="px-3 py-2">{message}</p>}
+          {message && (
+            <p role="alert" className="px-3 py-2">
+              {message}
+            </p>
+          )}
         </div>
       </details>
     </>
