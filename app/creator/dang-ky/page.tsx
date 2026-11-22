@@ -4,15 +4,25 @@ import Link from "next/link";
 import Image from "next/image";
 import creatorHero from "../../../public/assets/bo-dung-cu-hoc-tap.png";
 import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import CreatorEvidence from "../../components/creator-evidence";
 import { createClient } from "../../lib/supabase-browser";
 import "../../home.css";
 
 type Application = {
+  id: string;
   full_name: string;
+  contact_email: string;
+  phone: string;
+  channel_name: string;
+  platform: string;
+  followers: number | null;
+  content_field: string;
   status: string;
 };
+
+const applicationFields =
+  "id,full_name,contact_email,phone,channel_name,platform,followers,content_field,status";
 
 const statusLabels: Record<string, string> = {
   pending: "Chờ xét duyệt",
@@ -63,6 +73,7 @@ export default function CreatorRegistrationPage() {
   const [message, setMessage] = useState("");
   const [loadFailed, setLoadFailed] = useState(false);
   const [contentField, setContentField] = useState("");
+  const [hasEvidence, setHasEvidence] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -77,7 +88,7 @@ export default function CreatorRegistrationPage() {
 
         const result = await supabase
           .from("creator_applications")
-          .select("full_name,status")
+          .select(applicationFields)
           .eq("user_id", data.user.id)
           .maybeSingle();
 
@@ -100,7 +111,7 @@ export default function CreatorRegistrationPage() {
     };
   }, [supabase]);
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
 
@@ -145,9 +156,11 @@ export default function CreatorRegistrationPage() {
         professional_background: text("professional_background"),
       };
 
-      const { error } = await supabase
+      const { data: createdApplication, error } = await supabase
         .from("creator_applications")
-        .insert(payload);
+        .insert(payload)
+        .select(applicationFields)
+        .single();
 
       if (error) {
         if (error.code === "23505") {
@@ -161,7 +174,7 @@ export default function CreatorRegistrationPage() {
         return;
       }
 
-      setApplication({ full_name: payload.full_name, status: "pending" });
+      setApplication(createdApplication);
       setMessage("Hồ sơ đã được gửi thành công.");
     } catch {
       setMessage("Kết nối bị gián đoạn. Hãy tải lại trang để kiểm tra hồ sơ.");
@@ -182,7 +195,7 @@ export default function CreatorRegistrationPage() {
 
         <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8">
           <div>
-            <p className="text-xs font-semibold tracking-wide text-[#526d5f]">
+            <p className="inline-flex rounded-full bg-[#e8f1dd] px-3 py-1 text-xs font-bold tracking-wide text-[#24543f]">
               CỘNG ĐỒNG CREATOR BLOOMIE
             </p>
             <h1 className="mt-2 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
@@ -262,13 +275,108 @@ export default function CreatorRegistrationPage() {
                 </p>
               </div>
             ) : application ? (
-              <div className="mt-5 space-y-3">
-                <p>Họ tên: {application.full_name}</p>
-                <p className="font-semibold">
-                  Trạng thái:{" "}
-                  {statusLabels[application.status] ?? application.status}
-                </p>
-                <CreatorEvidence key={userId} userId={userId} canUpload />
+              <div className="mt-5 space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm text-[#526d5f]">
+                    Mã hồ sơ{" "}
+                    <strong className="text-[#24543f]">
+                      #{application.id.slice(0, 8).toUpperCase()}
+                    </strong>
+                  </p>
+
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      application.status === "approved"
+                        ? "bg-[#e7f2df] text-[#24543f]"
+                        : application.status === "rejected"
+                          ? "bg-[#fbe9e6] text-[#8e3028]"
+                          : "bg-[#fff2cd] text-[#774c13]"
+                    }`}
+                  >
+                    {statusLabels[application.status] ?? application.status}
+                  </span>
+                </div>
+
+                <ol
+                  aria-label="Tiến trình hồ sơ"
+                  className="grid grid-cols-2 gap-3 rounded-2xl border border-[#e5ebe2] bg-[#fffdf8] p-4 sm:grid-cols-4 sm:gap-2"
+                >
+                  {[
+                    "Gửi hồ sơ",
+                    "Bổ sung minh chứng",
+                    "Bloomie xem xét",
+                    "Kết quả",
+                  ].map((label, index) => {
+                    const currentStep =
+                      application.status === "approved" ||
+                      application.status === "rejected"
+                        ? 3
+                        : application.status === "reviewing" || hasEvidence
+                          ? 2
+                          : 1;
+
+                    return (
+                      <li
+                        key={label}
+                        aria-current={
+                          index === currentStep ? "step" : undefined
+                        }
+                        className="text-center text-xs font-medium"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`mx-auto mb-2 grid size-8 place-items-center rounded-full border ${
+                            index <= currentStep
+                              ? "border-[#24543f] bg-[#24543f] text-white"
+                              : "border-[#dce4d9] bg-white text-[#526d5f]"
+                          }`}
+                        >
+                          {index < currentStep ? "✓" : index + 1}
+                        </span>
+                        {label}
+                      </li>
+                    );
+                  })}
+                </ol>
+
+                <section className="rounded-2xl border border-[#e2e8df] bg-[#f0f6eb] p-4 sm:p-5">
+                  <h3 className="mb-4 text-xs font-bold uppercase tracking-wide text-[#24543f]">
+                    Thông tin đã cung cấp
+                  </h3>
+
+                  <dl className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
+                    {[
+                      ["Họ và tên", application.full_name],
+                      ["Email liên hệ", application.contact_email],
+                      ["Số điện thoại", application.phone],
+                      ["Tên kênh / Fanpage", application.channel_name],
+                      [
+                        "Nền tảng và lượt theo dõi",
+                        [
+                          application.platform,
+                          application.followers?.toLocaleString("vi-VN"),
+                        ]
+                          .filter(Boolean)
+                          .join(" · "),
+                      ],
+                      ["Lĩnh vực nội dung", application.content_field],
+                    ].map(([label, value]) => (
+                      <div key={label} className="min-w-0">
+                        <dt className="text-xs text-[#526d5f]">{label}</dt>
+                        <dd className="mt-1 wrap-break-word text-sm font-semibold">
+                          {value || "Chưa bổ sung"}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+
+                <CreatorEvidence
+                  key={userId}
+                  userId={userId}
+                  canUpload
+                  onEvidenceChange={setHasEvidence}
+                />
               </div>
             ) : (
               <form

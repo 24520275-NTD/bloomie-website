@@ -15,10 +15,12 @@ export default function CreatorEvidence({
   userId,
   canUpload = false,
   renderReview,
+  onEvidenceChange,
 }: {
   userId: string;
   canUpload?: boolean;
   renderReview?: (objectId: string) => ReactNode;
+  onEvidenceChange?: (hasEvidence: boolean) => void;
 }) {
   const [supabase] = useState(() => createClient());
   const [files, setFiles] = useState<{ id: string; name: string }[]>([]);
@@ -64,7 +66,12 @@ export default function CreatorEvidence({
     };
   }, [supabase, userId]);
 
+  useEffect(() => {
+    if (!loading) onEvidenceChange?.(files.length > 0);
+  }, [files.length, loading, onEvidenceChange]);
+
   async function upload(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
     const form = event.currentTarget;
     const file = new FormData(form).get("evidence");
 
@@ -162,22 +169,30 @@ export default function CreatorEvidence({
 
       {canUpload && (
         <form onSubmit={upload} className="space-y-3">
-          <label className="block text-sm">
-            Chọn tệp PDF, JPG hoặc PNG, tối đa 10 MB
+          <p className="text-sm text-[#526d5f]">
+            Tải tài liệu định dạng PDF, JPG hoặc PNG, tối đa 10 MB mỗi tệp.
+          </p>
+
+          <label className="block rounded-2xl border border-dashed border-[#b9cdb1] bg-[#f7faf4] px-4 py-6 text-center">
+            <span className="block text-sm font-semibold text-[#24543f]">
+              Chọn tệp từ thiết bị
+            </span>
             <input
               name="evidence"
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               required
-              className="mt-2 block w-full"
+              disabled={busy}
+              className="mx-auto mt-3 block w-full max-w-xs text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#e8f1dd] file:px-4 file:py-2 file:font-semibold file:text-[#24543f]"
             />
           </label>
+
           <button
             type="submit"
             disabled={busy || loading}
-            className="rounded-lg bg-[#286347] px-4 py-2 text-white disabled:opacity-50"
+            className="w-full rounded-full bg-[#24543f] px-5 py-3 text-sm font-semibold text-white hover:bg-[#1b4433] disabled:opacity-50"
           >
-            Tải minh chứng
+            {busy ? "Đang xử lý…" : "Gửi minh chứng bổ sung →"}
           </button>
         </form>
       )}
