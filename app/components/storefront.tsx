@@ -65,7 +65,7 @@ export default function Storefront({
                   aria-current={
                     !home && pathname === homeLink(href) ? "page" : undefined
                   }
-                  className="rounded-sm py-2 text-sm font-medium text-[#324f45] outline-none transition hover:text-[#1e7d3a] focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
+                  className="rounded-sm py-2 text-sm font-medium text-[#324f45] outline-none transition-colors decoration-2 underline-offset-[6px] hover:font-bold hover:text-[#245c45] hover:underline focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
                 >
                   {item}
                 </Link>
