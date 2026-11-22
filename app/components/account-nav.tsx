@@ -106,13 +106,22 @@ function ConnectedAccountNav() {
             Thông tin tài khoản
           </Link>
           {adminId === user.id && (
-            <Link
-              href="/admin/creator"
-              className="block rounded-xl px-3 py-3 text-inherit hover:bg-green-50"
-            >
-              Duyệt hồ sơ Creator
-            </Link>
+            <>
+              <Link
+                href="/admin/creator"
+                className="block rounded-xl px-3 py-3 text-inherit hover:bg-green-50"
+              >
+                Duyệt hồ sơ Creator
+              </Link>
+              <Link
+                href="/admin/vi"
+                className="block rounded-xl px-3 py-3 text-inherit hover:bg-green-50"
+              >
+                Quản lý ví giả lập
+              </Link>
+            </>
           )}
+
           <button
             type="button"
             onClick={signOut}

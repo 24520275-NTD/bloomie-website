@@ -15,6 +15,7 @@ type Order = {
 const statusLabels: Record<string, string> = {
   pending_payment: "Chờ thanh toán",
   paid: "Đã thanh toán",
+  paid_simulated: "Đã thanh toán giả lập",
   cancelled: "Đã hủy",
 };
 
@@ -30,6 +31,7 @@ export default function OrderPage() {
   const [needsLogin, setNeedsLogin] = useState(false);
   const [openingPayment, setOpeningPayment] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+  const [balance, setBalance] = useState<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -63,6 +65,17 @@ export default function OrderPage() {
         if (!active) return;
 
         setOrder(data);
+        if (data) {
+          const { data: wallet, error: walletError } = await supabase
+            .from("demo_wallets")
+            .select("balance_vnd")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (active) {
+            setBalance(walletError ? null : Number(wallet?.balance_vnd ?? 0));
+          }
+        }
         setMessage(data ? "" : "Không tìm thấy đơn hàng trong tài khoản này.");
       } catch {
         if (active) {
@@ -83,38 +96,30 @@ export default function OrderPage() {
 
     try {
       const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        throw new Error("Hãy đăng nhập lại để thanh toán.");
-      }
-
-      const response = await fetch("/api/payos", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ orderId: id }),
+      const { data, error } = await supabase.rpc("pay_order_with_demo_wallet", {
+        p_order_id: id,
       });
 
-      const result = await response.json();
-
-      if (!response.ok || typeof result.checkoutUrl !== "string") {
-        throw new Error(result.error || "Chưa mở được trang thanh toán.");
+      if (error) {
+        throw new Error(
+          error.code === "P0001"
+            ? error.message
+            : "Chưa xác nhận được thanh toán. Bạn có thể thử lại.",
+        );
       }
 
-      window.location.assign(result.checkoutUrl);
+      setBalance(Number(data));
+      setOrder((current) =>
+        current?.id === id ? { ...current, status: "paid_simulated" } : current,
+      );
     } catch (error) {
       setPaymentError(
         error instanceof Error ? error.message : "Thanh toán gặp lỗi.",
       );
+    } finally {
       setOpeningPayment(false);
     }
   }
-
   return (
     <Storefront>
       <main className="mx-auto w-full max-w-2xl px-5 py-10">
@@ -147,26 +152,30 @@ export default function OrderPage() {
             </div>
           </dl>
         )}
-        {order?.id === id &&
-          order.status === "pending_payment" &&
-          order.total_vnd > 0 && (
-            <div className="mt-6">
-              <button
-                type="button"
-                className="bloomie-button disabled:opacity-60"
-                disabled={openingPayment}
-                onClick={openPayment}
-              >
-                {openingPayment ? "Đang mở thanh toán…" : "Thanh toán QR"}
-              </button>
+        {order?.id === id && order.status === "pending_payment" && (
+          <div className="mt-6">
+            <p className="mb-3 text-sm">
+              Số dư ví giả lập{" "}
+              <strong>
+                {balance === null ? "Chưa xác định" : money.format(balance)}
+              </strong>
+            </p>
+            <button
+              type="button"
+              className="bloomie-button disabled:opacity-60"
+              disabled={openingPayment}
+              onClick={openPayment}
+            >
+              {openingPayment ? "Đang thanh toán…" : "Thanh toán bằng ví giả lập"}
+            </button>
 
-              {paymentError && (
-                <p role="alert" className="mt-3 text-sm text-red-700">
-                  {paymentError}
-                </p>
-              )}
-            </div>
-          )}
+            {paymentError && (
+              <p role="alert" className="mt-3 text-sm text-red-700">
+                {paymentError}
+              </p>
+            )}
+          </div>
+        )}
       </main>
     </Storefront>
   );
