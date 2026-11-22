@@ -108,7 +108,7 @@ function ConnectedAccountNav() {
           {adminId === user.id && (
             <Link
               href="/admin/creator"
-              className="block rounded-xl px-3 py-3 font-semibold text-[#286347] hover:bg-green-50"
+              className="block rounded-xl px-3 py-3 text-inherit hover:bg-green-50"
             >
               Duyệt hồ sơ Creator
             </Link>
