@@ -90,7 +90,7 @@ function ConnectedAccountNav() {
       >
         <summary
           aria-label="Mở menu tài khoản"
-          className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-full bg-[#286347] font-bold text-white [&::-webkit-details-marker]:hidden"
+          className="grid size-11 cursor-pointer list-none place-items-center rounded-full bg-[#245c45] text-lg font-bold text-white ring-2 ring-[#245c45]/15 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#245c45] lg:size-14 [&::-webkit-details-marker]:hidden"
         >
           {initial}
         </summary>

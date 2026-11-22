@@ -71,24 +71,24 @@ export default function Storefront({
                 </Link>
               ))}
             </nav>
-            <div className="flex items-center gap-2">
-              <AccountNav />
+            <div className="flex items-center gap-2 lg:gap-6">
               <Link
                 href="/gio-hang"
                 aria-current={pathname === "/gio-hang" ? "page" : undefined}
                 aria-label={count ? `Giỏ hàng, ${count} sản phẩm` : "Giỏ hàng"}
-                className="relative grid size-11 place-items-center rounded-full bg-[#245c45] text-white transition hover:bg-[#1c4b38] focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
+                className="relative grid size-11 place-items-center rounded-full text-[#245c45] transition-colors hover:bg-[#e8f1dd] focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
               >
-                <Icon name="bag" />
+                <Icon name="bag" className="size-9" />
                 {count > 0 && (
                   <span
                     aria-hidden="true"
-                    className="absolute -top-1 -right-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-[#ffb775] px-1 text-[10px] font-extrabold text-[#1f3d33]"
+                    className="absolute top-0 right-0 grid h-5 min-w-5 place-items-center rounded-full bg-[#f58220] px-1 text-xs font-bold text-white ring-2 ring-[#fffdf8]"
                   >
                     {count > 99 ? "99+" : count}
                   </span>
                 )}
               </Link>
+              <AccountNav />
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="flex size-11 items-center justify-center rounded-full text-[#245c45] outline-none transition hover:bg-[#e8f1dd] active:scale-95 focus-visible:ring-3 focus-visible:ring-[#f58220]/50 lg:hidden"
