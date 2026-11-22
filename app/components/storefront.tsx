@@ -46,7 +46,7 @@ export default function Storefront({
           <div className="flex min-h-18 w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-3 md:min-h-20 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
             <a
               href={home ? "#top" : "/"}
-              className="group rounded-md text-[25px] font-extrabold tracking-[-.04em] outline-none focus-visible:ring-3 focus-visible:ring-[#f58220]/50 lg:justify-self-start"
+              className="group rounded-md text-[25px] font-extrabold tracking-[-.04em] outline-none focus-visible:ring-3 focus-visible:ring-[#f58220]/50 lg:justify-self-center"
               aria-label="Bloomie - Trang chủ"
             >
               bloomie
@@ -71,7 +71,7 @@ export default function Storefront({
                 </Link>
               ))}
             </nav>
-            <div className="flex items-center gap-2 lg:justify-self-end lg:gap-6">
+            <div className="flex items-center gap-2 lg:justify-self-center lg:gap-6">
               <Link
                 href="/gio-hang"
                 aria-current={pathname === "/gio-hang" ? "page" : undefined}
