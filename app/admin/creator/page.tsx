@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Icon } from "../../components/bloomie-icon";
 import { useEffect, useState } from "react";
 import { createClient } from "../../lib/supabase-browser";
 import CreatorEvaluation from "./creator-evaluation";
@@ -216,43 +217,70 @@ export default function CreatorAdminPage() {
 
     return `Đã chấm ${gradedCount}/${totalCriteria} tiêu chí`;
   }
+  function resetFilters() {
+    setSearch("");
+    setStatusFilter("all");
+    setProgressFilter("all");
+    setSortOrder("newest");
+  }
+
+  const filtersActive =
+    search !== "" ||
+    statusFilter !== "all" ||
+    progressFilter !== "all" ||
+    sortOrder !== "newest";
+
+  const filterClass =
+    "min-w-0 w-full rounded-full border border-[#e4ebe0] bg-[#fffdf8] px-3 py-2 text-sm";
+
+  const statusColors: Record<Status, string> = {
+    pending: "bg-[#fff2cd] text-[#774c13]",
+    reviewing: "bg-[#ffeddc] text-[#85451a]",
+    approved: "bg-[#e7f2df] text-[#245c45]",
+    rejected: "bg-[#fbe9e6] text-[#8e3028]",
+  };
+
   return (
-    <main className="min-h-screen bg-[#fffdf8] p-8 text-[#243c32]">
-      <div className="mx-auto max-w-3xl">
-        <Link href="/" className="underline">
-          Trở về trang chủ
-        </Link>
-        <h1 className="mt-6 text-3xl font-bold">Duyệt hồ sơ Creator</h1>
-        {allowed && (
-          <CreatorIntakeForm
-            supabase={supabase}
-            onCreated={() => setListVersion((version) => version + 1)}
-          />
-        )}
-        <p role="status" className="mt-4">
+    <main className="min-h-screen bg-[#fffdf8] px-4 py-6 text-[#243c32] sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1440px]">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <Link
+              href="/"
+              className="inline-block rounded-full bg-[#edf4e7] px-3 py-1 text-xs font-bold uppercase text-[#245c45] hover:underline"
+            >
+              Quản trị hệ thống
+            </Link>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+              Duyệt hồ sơ Creator
+            </h1>
+            <p className="mt-1 max-w-lg text-sm leading-6 text-[#52645a]">
+              Xem xét, chấm điểm và cập nhật trạng thái các hồ sơ đăng ký làm
+              Creator học liệu Bloomie.
+            </p>
+          </div>
+
+          {allowed && (
+            <CreatorIntakeForm
+              supabase={supabase}
+              onCreated={() => setListVersion((version) => version + 1)}
+            />
+          )}
+        </header>
+
+        <p role="status" className={message ? "mt-4 text-sm" : "sr-only"}>
           {message}
         </p>
+
         {allowed && (progressReady || applications.length === 0) && (
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             {(
               [
-                {
-                  value: "ungraded",
-                  label: "Chưa chấm",
-                  count: progressCounts.ungraded,
-                },
-                {
-                  value: "partial",
-                  label: "Chấm một phần",
-                  count: progressCounts.partial,
-                },
-                {
-                  value: "complete",
-                  label: "Đã chấm đủ",
-                  count: progressCounts.complete,
-                },
+                ["ungraded", "Chưa chấm", "Cần xử lý sớm", "pencil"],
+                ["partial", "Chấm một phần", "Đang hoàn thiện", "palette"],
+                ["complete", "Đã chấm đủ", "Đã duyệt xong tiêu chí", "check"],
               ] as const
-            ).map(({ value, label, count }) => (
+            ).map(([value, label, description, icon]) => (
               <button
                 key={value}
                 type="button"
@@ -263,186 +291,282 @@ export default function CreatorAdminPage() {
                     current === value ? "all" : value,
                   )
                 }
-                className={`rounded-xl border p-4 text-left ${
+                className={`flex items-center justify-between gap-3 rounded-2xl border p-4 text-left shadow-sm ${
                   progressFilter === value
-                    ? "border-green-400 bg-green-50"
-                    : "border-green-100 bg-white"
+                    ? "border-[#8dad80] bg-[#f1f7ed]"
+                    : "border-[#e4ebe0] bg-white"
                 }`}
               >
-                <span className="block text-sm text-[#286347]">{label}</span>
-                <span className="mt-1 block text-2xl font-bold">{count}</span>
+                <span>
+                  <span className="block text-sm font-medium">{label}</span>
+                  <span className="block text-3xl font-bold">
+                    {progressCounts[value]}
+                  </span>
+                  <span className="block text-xs text-[#52645a]">
+                    {description}
+                  </span>
+                </span>
+                <span className="rounded-xl bg-[#edf4e7] p-3 text-[#245c45]">
+                  <Icon name={icon} />
+                </span>
               </button>
             ))}
           </div>
         )}
 
         {allowed && (
-          <div className="mt-6 flex flex-wrap items-end gap-4">
-            <label className="grid gap-2 text-sm font-medium">
-              Trạng thái hồ sơ
-              <select
-                className="rounded-lg border border-green-200 bg-white px-3 py-2"
-                value={statusFilter}
-                onChange={(event) =>
-                  setStatusFilter(event.target.value as Status | "all")
-                }
-              >
-                <option value="all">Tất cả trạng thái</option>
-                <option value="pending">{labels.pending}</option>
-                <option value="reviewing">{labels.reviewing}</option>
-                <option value="approved">{labels.approved}</option>
-                <option value="rejected">{labels.rejected}</option>
-              </select>
-            </label>
-            <label className="grid gap-2 text-sm font-medium">
-              Tiến độ chấm
-              <select
-                className="rounded-lg border border-green-200 bg-white px-3 py-2"
-                value={progressFilter}
-                disabled={!progressReady}
-                onChange={(event) =>
-                  setProgressFilter(event.target.value as typeof progressFilter)
-                }
-              >
-                <option value="all">Tất cả tiến độ</option>
-                <option value="ungraded">Chưa chấm</option>
-                <option value="partial">Chấm một phần</option>
-                <option value="complete">Đã chấm đủ</option>
-              </select>
-            </label>
-            <label className="grid gap-2 text-sm font-medium">
-              Sắp xếp hồ sơ
-              <select
-                className="rounded-lg border border-green-200 bg-white px-3 py-2"
-                value={sortOrder}
-                disabled={!progressReady}
-                onChange={(event) =>
-                  setSortOrder(event.target.value as typeof sortOrder)
-                }
-              >
-                <option value="newest">Mới nhất</option>
-                <option value="least-graded">Ít tiêu chí đã chấm trước</option>
-                <option value="most-graded">
-                  Nhiều tiêu chí đã chấm trước
-                </option>
-              </select>
-            </label>
-            <label className="grid flex-1 gap-2 text-sm font-medium">
-              Tìm hồ sơ Creator
+          <div className="mt-5 grid items-center gap-2 rounded-2xl border border-[#e4ebe0] bg-white p-3 shadow-sm sm:grid-cols-2 lg:grid-cols-[minmax(10rem,2fr)_repeat(3,minmax(0,1fr))_auto_auto]">
+            <div className="relative sm:col-span-2 lg:col-span-1">
+              <Icon
+                name="search"
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#52645a]"
+              />
               <input
                 type="search"
+                aria-label="Tìm hồ sơ Creator"
+                placeholder="Tên, kênh, nền tảng hoặc lĩnh vực…"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Tên, kênh, nền tảng hoặc lĩnh vực"
-                className="min-w-56 rounded-lg border border-green-200 bg-white px-3 py-2"
+                className="w-full min-w-0 rounded-full border border-[#e4ebe0] bg-[#fffdf8] py-2 pr-3 pl-9 text-sm"
               />
-            </label>
+            </div>
+
+            <select
+              aria-label="Trạng thái hồ sơ"
+              className={filterClass}
+              value={statusFilter}
+              onChange={(event) =>
+                setStatusFilter(event.target.value as typeof statusFilter)
+              }
+            >
+              <option value="all">Tất cả trạng thái</option>
+              {Object.entries(labels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              aria-label="Tiến độ chấm"
+              className={filterClass}
+              value={progressFilter}
+              disabled={!progressReady}
+              onChange={(event) =>
+                setProgressFilter(event.target.value as typeof progressFilter)
+              }
+            >
+              <option value="all">Tất cả tiến độ</option>
+              <option value="ungraded">Chưa chấm</option>
+              <option value="partial">Chấm một phần</option>
+              <option value="complete">Đã chấm đủ</option>
+            </select>
+
+            <select
+              aria-label="Sắp xếp hồ sơ"
+              className={filterClass}
+              value={sortOrder}
+              disabled={!progressReady}
+              onChange={(event) =>
+                setSortOrder(event.target.value as typeof sortOrder)
+              }
+            >
+              <option value="newest">Mới nhất</option>
+              <option value="least-graded">Ít tiêu chí đã chấm trước</option>
+              <option value="most-graded">Nhiều tiêu chí đã chấm trước</option>
+            </select>
+
             <button
               type="button"
-              className="rounded-lg border border-green-200 bg-white px-3 py-2 text-sm font-medium text-[#286347] disabled:opacity-50"
-              disabled={
-                statusFilter === "all" &&
-                progressFilter === "all" &&
-                search === "" &&
-                sortOrder === "newest"
-              }
-              onClick={() => {
-                setStatusFilter("all");
-                setProgressFilter("all");
-                setSearch("");
-                setSortOrder("newest");
-              }}
+              onClick={resetFilters}
+              disabled={!filtersActive}
+              className="rounded-full bg-[#edf4e7] px-3 py-2 text-sm font-medium text-[#245c45] disabled:opacity-50"
             >
               Đặt lại
             </button>
-            <p className="pb-2 text-sm" aria-live="polite">
-              Hiển thị {visibleApplications.length}/{applications.length} hồ sơ
+
+            <p aria-live="polite" className="px-1 text-sm">
+              Hiển thị{" "}
+              <strong>
+                {visibleApplications.length}/{applications.length}
+              </strong>{" "}
+              hồ sơ
             </p>
           </div>
         )}
 
         {allowed && visibleApplications.length === 0 && (
-          <p className="mt-6">
-            {applications.length === 0
-              ? "Chưa có hồ sơ nào."
-              : "Không có hồ sơ phù hợp với bộ lọc."}
-          </p>
+          <div className="mt-5 rounded-3xl border border-dashed border-[#cbdcc4] bg-white px-4 py-12 text-center">
+            <Icon name="bag" className="mx-auto mb-3 size-7 text-[#245c45]" />
+            <p className="font-semibold">
+              {applications.length === 0
+                ? "Chưa có hồ sơ Creator"
+                : "Không có hồ sơ phù hợp với bộ lọc"}
+            </p>
+            {filtersActive && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="mt-3 rounded-full bg-[#edf4e7] px-4 py-2 text-sm font-medium text-[#245c45]"
+              >
+                Làm mới bộ lọc
+              </button>
+            )}
+          </div>
         )}
 
         {allowed &&
-          visibleApplications.map((item) => (
-            <article key={item.id} className="mt-6 rounded-2xl border bg-white">
-              <form
-                key={item.status}
-                className="space-y-4 p-5"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  const status = new FormData(event.currentTarget).get(
-                    "status",
-                  );
-                  if (
-                    typeof status === "string" &&
-                    Object.hasOwn(labels, status)
-                  ) {
-                    void saveStatus(item.id, status as Status);
-                  }
-                }}
-              >
-                <h2 className="text-xl font-bold">{item.full_name}</h2>
-                <p>
-                  {item.channel_name} · {item.platform}
-                </p>
-                <p className="text-sm font-medium text-[#286347]">
-                  {getProgressLabel(item.id)}
-                </p>
-                <Link
-                  href={`/admin/creator/${item.id}`}
-                  className="inline-block font-semibold text-[#286347] underline"
-                >
-                  Xem chi tiết hồ sơ
-                </Link>
-                <label className="block">
-                  Trạng thái
-                  <select
-                    name="status"
-                    defaultValue={item.status}
-                    disabled={busy}
-                    className="ml-3 rounded border p-2"
+          visibleApplications.map((item, index) => (
+            <article
+              key={item.id}
+              className="mt-5 rounded-3xl border border-[#e4ebe0] bg-white p-4 shadow-sm sm:p-5"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="grid size-11 shrink-0 place-items-center rounded-full bg-[#edf4e7] font-bold text-[#245c45]"
                   >
-                    {Object.entries(labels).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button
-                  type="submit"
-                  disabled={busy}
-                  className="rounded-lg bg-[#286347] px-4 py-2 text-white disabled:opacity-50"
-                >
-                  Lưu trạng thái
-                </button>
-              </form>
-              <section
-                className="rounded-b-2xl border-t border-green-100 bg-[#f5f8f1] p-5"
-                aria-label="Chấm điểm hồ sơ"
+                    {item.full_name.trim().charAt(0).toLocaleUpperCase("vi")}
+                  </span>
+                  <div className="min-w-0">
+                    <h2 className="wrap-break-word text-lg font-bold">
+                      {item.full_name}
+                    </h2>
+                    <p className="wrap-break-word text-sm text-[#52645a]">
+                      {item.channel_name} · {item.platform}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 text-xs font-semibold">
+                  <span className="rounded-full bg-[#edf4e7] px-3 py-1 text-[#245c45]">
+                    {getProgressLabel(item.id)}
+                  </span>
+                  <span
+                    className={`rounded-full px-3 py-1 ${statusColors[item.status]}`}
+                  >
+                    {labels[item.status]}
+                  </span>
+                </div>
+              </div>
+
+              <details
+                open={index === 0}
+                className="group mt-4 rounded-2xl border border-[#e4ebe0] bg-[#f5f8f1]"
               >
-                <button
-                  type="button"
-                  className="font-semibold text-[#286347] underline"
-                  aria-expanded={evaluationId === item.id}
-                  onClick={() =>
-                    setEvaluationId((current) =>
-                      current === item.id ? null : item.id,
-                    )
-                  }
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-[#245c45] [&::-webkit-details-marker]:hidden">
+                  Chi tiết hồ sơ đăng ký
+                  <span className="shrink-0 font-medium">
+                    <span className="group-open:hidden">Mở rộng ↓</span>
+                    <span className="hidden group-open:inline">Thu gọn ↑</span>
+                  </span>
+                </summary>
+
+                <dl className="grid gap-3 px-4 pb-4 text-sm sm:grid-cols-2">
+                  {(
+                    [
+                      ["Email liên hệ", item.contact_email],
+                      ["Số điện thoại", item.phone],
+                      ["Đường dẫn kênh", item.channel_url],
+                      [
+                        "Lượt theo dõi",
+                        item.followers?.toLocaleString("vi-VN"),
+                      ],
+                      ["Lĩnh vực nội dung", item.content_field],
+                      ["Giới thiệu bản thân", item.introduction],
+                      [
+                        "Học vấn, chuyên môn và kinh nghiệm",
+                        item.professional_background,
+                      ],
+                    ] as const
+                  ).map(([label, value], fieldIndex) => (
+                    <div
+                      key={label}
+                      className={fieldIndex >= 4 ? "sm:col-span-2" : ""}
+                    >
+                      <dt className="text-xs font-semibold text-[#52645a]">
+                        {label}
+                      </dt>
+                      <dd className="mt-0.5 wrap-break-word whitespace-pre-wrap">
+                        {value || "Chưa bổ sung"}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </details>
+
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#e4ebe0] pt-3">
+                <form
+                  key={item.status}
+                  className="flex flex-wrap items-center gap-2 text-sm"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const status = new FormData(event.currentTarget).get(
+                      "status",
+                    );
+                    if (
+                      typeof status === "string" &&
+                      Object.hasOwn(labels, status)
+                    ) {
+                      void saveStatus(item.id, status as Status);
+                    }
+                  }}
                 >
-                  {evaluationId === item.id
-                    ? "Đóng bảng đánh giá"
-                    : "Đánh giá Creator"}
-                </button>
-                {evaluationId === item.id && (
+                  <label className="flex flex-wrap items-center gap-2">
+                    Trạng thái
+                    <select
+                      name="status"
+                      defaultValue={item.status}
+                      disabled={busy}
+                      className="rounded-full border border-[#e4ebe0] bg-[#fffdf8] px-3 py-2"
+                    >
+                      {Object.entries(labels).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <button
+                    type="submit"
+                    disabled={busy}
+                    className="rounded-full bg-[#245c45] px-4 py-2 font-semibold text-white hover:bg-[#1c4b38] disabled:opacity-50"
+                  >
+                    Lưu trạng thái
+                  </button>
+                </form>
+
+                <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <Link
+                    href={`/admin/creator/${item.id}`}
+                    className="text-[#245c45] hover:underline"
+                  >
+                    Xem hồ sơ và minh chứng
+                  </Link>
+                  <button
+                    type="button"
+                    aria-expanded={evaluationId === item.id}
+                    onClick={() =>
+                      setEvaluationId((current) =>
+                        current === item.id ? null : item.id,
+                      )
+                    }
+                    className="font-semibold text-[#245c45] hover:underline"
+                  >
+                    {evaluationId === item.id
+                      ? "Đóng bảng đánh giá"
+                      : "Đánh giá Creator →"}
+                  </button>
+                </div>
+              </div>
+
+              {evaluationId === item.id && (
+                <section
+                  aria-label="Chấm điểm hồ sơ"
+                  className="mt-4 rounded-2xl bg-[#f5f8f1] p-4"
+                >
                   <CreatorEvaluation
                     applicationId={item.id}
                     onSaved={(gradedCount) => {
@@ -452,8 +576,8 @@ export default function CreatorAdminPage() {
                       }));
                     }}
                   />
-                )}
-              </section>
+                </section>
+              )}
             </article>
           ))}
       </div>

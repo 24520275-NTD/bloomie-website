@@ -6,13 +6,32 @@ import type { createClient } from "../../lib/supabase-browser";
 const fields = [
   { name: "full_name", label: "Họ và tên", type: "text", min: 2, max: 100 },
   { name: "channel_name", label: "Tên kênh", type: "text", min: 1, max: 150 },
-  { name: "contact_email", label: "Email liên hệ", type: "email", min: 3, max: 254 },
+  {
+    name: "contact_email",
+    label: "Email liên hệ",
+    type: "email",
+    min: 3,
+    max: 254,
+  },
   { name: "phone", label: "Số điện thoại", type: "tel", min: 8, max: 25 },
-  { name: "channel_url", label: "Đường dẫn kênh (https://)", type: "url", min: 1, max: 1000 },
-  { name: "content_field", label: "Lĩnh vực nội dung", type: "text", min: 1, max: 300 },
+  {
+    name: "channel_url",
+    label: "Đường dẫn kênh (https://)",
+    type: "url",
+    min: 1,
+    max: 1000,
+  },
+  {
+    name: "content_field",
+    label: "Lĩnh vực nội dung",
+    type: "text",
+    min: 1,
+    max: 300,
+  },
 ] as const;
 
-const inputClass = "w-full rounded-xl border border-green-200 bg-white px-3 py-2";
+const inputClass =
+  "w-full rounded-xl border border-green-200 bg-white px-3 py-2";
 
 export default function CreatorIntakeForm({
   supabase,
@@ -85,12 +104,18 @@ export default function CreatorIntakeForm({
   }
 
   return (
-    <details className="mt-6 rounded-2xl border border-green-200 bg-green-50 p-5">
-      <summary className="cursor-pointer font-semibold">
+    <details className="group relative shrink-0">
+      <summary className="w-fit cursor-pointer list-none rounded-full bg-[#245c45] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1c4b38] [&::-webkit-details-marker]:hidden">
+        <span className="mr-1.5" aria-hidden="true">
+          +
+        </span>
         Nhập hồ sơ Creator
       </summary>
 
-      <form className="mt-4" onSubmit={submit}>
+      <form
+        className="absolute left-0 top-full z-30 mt-2 max-h-[65vh] w-[calc(100vw_-_2rem)] max-w-2xl overflow-y-auto rounded-2xl border border-green-100 bg-white p-5 shadow-xl sm:right-0 sm:left-auto"
+        onSubmit={submit}
+      >
         <fieldset disabled={saving} className="grid gap-4 sm:grid-cols-2">
           {fields.map(({ name, label, type, min, max }) => (
             <label key={name} className="grid gap-1 text-sm font-medium">
@@ -108,8 +133,15 @@ export default function CreatorIntakeForm({
 
           <label className="grid gap-1 text-sm font-medium">
             Nền tảng
-            <select className={inputClass} name="platform" defaultValue="" required>
-              <option value="" disabled>Chọn nền tảng</option>
+            <select
+              className={inputClass}
+              name="platform"
+              defaultValue=""
+              required
+            >
+              <option value="" disabled>
+                Chọn nền tảng
+              </option>
               <option>TikTok</option>
               <option>Facebook</option>
               <option>YouTube</option>
@@ -133,7 +165,12 @@ export default function CreatorIntakeForm({
 
           <label className="grid gap-1 text-sm font-medium sm:col-span-2">
             Giới thiệu bản thân
-            <textarea className={inputClass} name="introduction" rows={3} maxLength={3000} />
+            <textarea
+              className={inputClass}
+              name="introduction"
+              rows={3}
+              maxLength={3000}
+            />
           </label>
 
           <label className="grid gap-1 text-sm font-medium sm:col-span-2">
@@ -154,8 +191,16 @@ export default function CreatorIntakeForm({
           </button>
         </fieldset>
 
-        {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
-        {success && <p role="status" className="mt-3 text-sm">{success}</p>}
+        {error && (
+          <p role="alert" className="mt-3 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+        {success && (
+          <p role="status" className="mt-3 text-sm">
+            {success}
+          </p>
+        )}
       </form>
     </details>
   );
