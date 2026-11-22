@@ -10,9 +10,18 @@ import type { Product } from "../lib/products";
 import hero from "../../public/assets/bo-dung-cu-hoc-tap.png";
 
 const faqs = [
-  ["Xem thông tin từng bộ dụng cụ ở đâu?", "Mở trang Sản phẩm và chọn một bộ để xem hình ảnh, mô tả và thông tin giá hiện có."],
-  ["Tôi xem giỏ hàng như thế nào?", "Bấm biểu tượng túi ở đầu trang để xem và thay đổi số lượng sản phẩm đã chọn."],
-  ["Tôi có thể đăng ký làm Creator không?", "Mở mục Creator, đăng nhập rồi điền hồ sơ và tải minh chứng. Bạn có thể quay lại để xem trạng thái xét duyệt."],
+  [
+    "Xem thông tin từng bộ dụng cụ ở đâu?",
+    "Mở trang Sản phẩm và chọn một bộ để xem hình ảnh, mô tả và thông tin giá hiện có.",
+  ],
+  [
+    "Tôi xem giỏ hàng như thế nào?",
+    "Bấm biểu tượng túi ở đầu trang để xem và thay đổi số lượng sản phẩm đã chọn.",
+  ],
+  [
+    "Tôi có thể đăng ký làm Creator không?",
+    "Mở mục Creator, đăng nhập rồi điền hồ sơ và tải minh chứng. Bạn có thể quay lại để xem trạng thái xét duyệt.",
+  ],
 ];
 
 const formatPrice = new Intl.NumberFormat("vi-VN", {
@@ -20,7 +29,10 @@ const formatPrice = new Intl.NumberFormat("vi-VN", {
   currency: "VND",
 });
 
-export default function BloomieHome({ products, productError }: {
+export default function BloomieHome({
+  products,
+  productError,
+}: {
   products: Product[];
   productError: string | null;
 }) {
@@ -32,23 +44,27 @@ export default function BloomieHome({ products, productError }: {
     <Storefront home productIds={productError ? undefined : validIds}>
       <main id="top">
         <section className="mx-auto grid max-w-[1200px] items-center gap-12 px-5 py-14 md:px-8 md:py-20 lg:grid-cols-[.95fr_1.05fr] lg:gap-18 lg:py-24">
-          <div>
+          <div className="min-w-0 [container-type:inline-size]">
             <p className="mb-5 text-[13px] font-bold uppercase tracking-[.12em] text-[#1e7d3a]">
               Cùng học hỏi, cùng lớn lên
             </p>
-            <h1 className="max-w-[650px] font-display text-[44px] leading-[1.1] font-bold tracking-[-.045em] text-[#1f3d33] sm:text-[54px] md:text-[64px] lg:text-[68px]">
-              Khơi mở tò mò.
-              <br />
-              Nuôi lớn{" "}
-              <span className="relative whitespace-nowrap">
-                ước mơ
-                <span className="absolute -bottom-1 left-0 h-2 w-full -rotate-1 rounded-full bg-[#f58220]/25" />
+            <h1 className="max-w-[650px] font-display text-[length:min(68px,12cqi)] leading-[1.1] font-bold tracking-[-.045em] text-[#1f3d33]">
+              <span className="block whitespace-nowrap">Khơi mở tò mò.</span>
+              <span className="block whitespace-nowrap">
+                Nuôi lớn{" "}
+                <span className="relative">
+                  ước mơ
+                  <span
+                    aria-hidden="true"
+                    className="absolute -bottom-1 left-0 h-2 w-full -rotate-1 rounded-full bg-[#f58220]/25"
+                  />
+                </span>
+                .
               </span>
-              .
             </h1>
             <p className="mt-7 max-w-[600px] text-[17px] leading-[1.75] text-[#4a5568] md:text-lg">
-              Những bộ dụng cụ học tập được tuyển chọn để mỗi giờ chơi là một hành trình khám phá
-              đầy hứng thú và ý nghĩa.
+              Những bộ dụng cụ học tập được tuyển chọn để mỗi giờ chơi là một
+              hành trình khám phá đầy hứng thú và ý nghĩa.
             </p>
             <a
               href="#san-pham"
@@ -127,8 +143,8 @@ export default function BloomieHome({ products, productError }: {
               </h2>
             </div>
             <p className="max-w-md text-[16px] leading-7 text-[#4a5568]">
-              Từ những nét vẽ đầu tiên đến các thí nghiệm nhỏ, luôn có một bộ phù hợp với trí tò mò
-              của bé.
+              Từ những nét vẽ đầu tiên đến các thí nghiệm nhỏ, luôn có một bộ
+              phù hợp với trí tò mò của bé.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -147,7 +163,9 @@ export default function BloomieHome({ products, productError }: {
                   <Icon name={icon as IconName} className="size-6" />
                 </span>
                 <span className="flex items-end justify-between gap-3">
-                  <span className="font-display text-xl font-bold leading-7">{title}</span>
+                  <span className="font-display text-xl font-bold leading-7">
+                    {title}
+                  </span>
                   <Icon
                     name="arrow"
                     className="size-5 shrink-0 transition-transform group-hover:translate-x-1"
@@ -158,7 +176,10 @@ export default function BloomieHome({ products, productError }: {
           </div>
         </section>
 
-        <section id="san-pham" className="scroll-mt-20 bg-[#f6f4ec] py-18 md:py-24">
+        <section
+          id="san-pham"
+          className="scroll-mt-20 bg-[#f6f4ec] py-18 md:py-24"
+        >
           <div className="mx-auto max-w-[1200px] px-5 md:px-8">
             <div className="mb-10 text-center">
               <p className="mb-3 text-[13px] font-bold uppercase tracking-[.12em] text-[#1e7d3a]">
@@ -168,33 +189,42 @@ export default function BloomieHome({ products, productError }: {
                 Bộ học tập nổi bật
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-[16px] leading-7 text-[#4a5568]">
-                Trọn bộ dụng cụ và hướng dẫn hoạt động, sẵn sàng để bé bắt đầu ngay khi mở hộp.
+                Trọn bộ dụng cụ và hướng dẫn hoạt động, sẵn sàng để bé bắt đầu
+                ngay khi mở hộp.
               </p>
             </div>
             {productError ? (
-              <p role="alert" className="text-center">{productError}</p>
+              <p role="alert" className="text-center">
+                {productError}
+              </p>
             ) : products.length === 0 ? (
               <p className="text-center">Danh mục đang được cập nhật.</p>
             ) : (
               <div className="grid gap-6 md:grid-cols-3">
                 {products.slice(0, 3).map((product) => (
-                  <article key={product.id} className="flex flex-col rounded-[32px] bg-white p-3 shadow-sm">
+                  <article
+                    key={product.id}
+                    className="flex flex-col rounded-[32px] bg-white p-3 shadow-sm"
+                  >
                     <Link
                       href={`/san-pham/${encodeURIComponent(product.id)}`}
                       className="block overflow-hidden rounded-[24px] bg-[#e8f1dd]"
                     >
-                      {product.image?.startsWith("/") && !product.image.startsWith("//") && (
-                        <div className="relative aspect-[4/3]">
-                          <Image
-                            src={product.image}
-                            alt={product.name}
-                            fill
-                            sizes="(max-width: 767px) 90vw, 33vw"
-                            className="object-contain p-3"
-                          />
-                        </div>
-                      )}
-                      <h3 className="p-4 font-display text-xl font-bold">{product.name}</h3>
+                      {product.image?.startsWith("/") &&
+                        !product.image.startsWith("//") && (
+                          <div className="relative aspect-[4/3]">
+                            <Image
+                              src={product.image}
+                              alt={product.name}
+                              fill
+                              sizes="(max-width: 767px) 90vw, 33vw"
+                              className="object-contain p-3"
+                            />
+                          </div>
+                        )}
+                      <h3 className="p-4 font-display text-xl font-bold">
+                        {product.name}
+                      </h3>
                     </Link>
                     <div className="flex flex-1 flex-col justify-between px-4 py-3">
                       <p className="font-semibold">
@@ -209,7 +239,10 @@ export default function BloomieHome({ products, productError }: {
               </div>
             )}
             <div className="mt-8 text-center">
-              <Link href="/san-pham" className="font-bold text-[#245c45] underline underline-offset-4">
+              <Link
+                href="/san-pham"
+                className="font-bold text-[#245c45] underline underline-offset-4"
+              >
                 Xem tất cả sản phẩm
               </Link>
             </div>
@@ -231,8 +264,8 @@ export default function BloomieHome({ products, productError }: {
                 Không chỉ là dụng cụ học tập.
               </h2>
               <p className="mt-5 max-w-md text-[16px] leading-7 text-white/75">
-                Đó là những khoảnh khắc cả nhà cùng làm, cùng hỏi và cùng vui khi tìm ra câu trả
-                lời.
+                Đó là những khoảnh khắc cả nhà cùng làm, cùng hỏi và cùng vui
+                khi tìm ra câu trả lời.
               </p>
             </div>
             <div className="absolute bottom-8 right-8 flex size-24 items-center justify-center rounded-full bg-[#fffdf8] text-[#245c45] sm:bottom-10 sm:right-10 sm:size-28">
@@ -264,13 +297,18 @@ export default function BloomieHome({ products, productError }: {
                   "Ba mẹ có thể cùng bé quan sát, đặt câu hỏi và thử những cách làm mới.",
                 ],
               ].map(([icon, title, text]) => (
-                <div key={title} className="grid grid-cols-[52px_1fr] gap-4 py-6 first:pt-0">
+                <div
+                  key={title}
+                  className="grid grid-cols-[52px_1fr] gap-4 py-6 first:pt-0"
+                >
                   <span className="flex size-12 items-center justify-center rounded-2xl bg-[#e8f1dd] text-[#245c45]">
                     <Icon name={icon as IconName} />
                   </span>
                   <div>
                     <h3 className="font-display text-xl font-bold">{title}</h3>
-                    <p className="mt-1.5 text-[15px] leading-6 text-[#4a5568]">{text}</p>
+                    <p className="mt-1.5 text-[15px] leading-6 text-[#4a5568]">
+                      {text}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -279,9 +317,12 @@ export default function BloomieHome({ products, productError }: {
         </section>
 
         <section className="bg-[#e8f1dd] px-5 py-16 text-center md:py-20">
-          <h2 className="font-display text-3xl font-bold md:text-4xl">Cộng tác cùng Bloomie</h2>
+          <h2 className="font-display text-3xl font-bold md:text-4xl">
+            Cộng tác cùng Bloomie
+          </h2>
           <p className="mx-auto mt-4 max-w-xl leading-7">
-            Bạn sáng tạo nội dung về học tập và trải nghiệm cho trẻ? Gửi hồ sơ để Bloomie xem xét cơ hội hợp tác.
+            Bạn sáng tạo nội dung về học tập và trải nghiệm cho trẻ? Gửi hồ sơ
+            để Bloomie xem xét cơ hội hợp tác.
           </p>
           <Link
             href="/creator/dang-ky"
@@ -303,7 +344,8 @@ export default function BloomieHome({ products, productError }: {
               Bạn đang băn khoăn?
             </h2>
             <p className="mt-4 text-[16px] leading-7 text-[#4a5568]">
-              Bloomie luôn sẵn lòng giúp bạn chọn món quà học tập phù hợp nhất cho bé.
+              Bloomie luôn sẵn lòng giúp bạn chọn món quà học tập phù hợp nhất
+              cho bé.
             </p>
           </div>
           <div className="border-t border-[#1f3d33]/12">
@@ -320,7 +362,9 @@ export default function BloomieHome({ products, productError }: {
                     <span
                       className={`flex size-8 shrink-0 items-center justify-center rounded-full bg-[#e8f1dd] text-[#245c45] transition-transform ${isOpen ? "rotate-45" : ""}`}
                     >
-                      <span className="text-2xl leading-none font-light">+</span>
+                      <span className="text-2xl leading-none font-light">
+                        +
+                      </span>
                     </span>
                   </button>
                   {isOpen && (
@@ -355,7 +399,6 @@ export default function BloomieHome({ products, productError }: {
           </div>
         </section>
       </main>
-
     </Storefront>
   );
 }
