@@ -1,35 +1,3 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
-import AccountNav from "./account-nav";
-import { Icon } from "./bloomie-icon";
-import { useCart } from "../lib/cart";
-import "../home.css";
-
-const navigation = [
-  ["Danh mục", "#danh-muc"],
-  ["Sản phẩm", "#san-pham"],
-  ["Vì sao chọn Bloomie", "#loi-ich"],
-  ["Hỏi đáp", "#faq"],
-  ["Học liệu", "/hoc-lieu"],
-  ["Creator", "/creator/dang-ky"],
-] as const;
-
-export default function Storefront({
-  children,
-  home = false,
-  productIds,
-}: {
-  children: ReactNode;
-  home?: boolean;
-  productIds?: string[];
-}) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const pathname = usePathname();
-  const showHeader = pathname !== "/dang-nhap" && pathname !== "/dang-ky";
-  const { cart } = useCart();
   const count = (productIds ?? Object.keys(cart)).reduce(
     (total, id) => total + (cart[id] ?? 0),
     0,
@@ -119,67 +87,74 @@ export default function Storefront({
         </header>
       )}
       {children}
-      <footer className="mt-auto border-t border-[#1f3d33]/10">
-        <div className="flex min-h-18 w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-3 md:min-h-20 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-          <div>
-            <a
-              href={home ? "#top" : "/"}
-              className="rounded-md font-display text-2xl font-extrabold tracking-[-.04em] outline-none focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
-            >
-              bloomie<span className="text-[#f58220]">.</span>
-            </a>
-            <p className="mt-4 max-w-xs text-sm leading-6 text-[#4a5568]">
-              Dụng cụ học tập giúp bé khám phá thế giới bằng đôi tay và trí tò
-              mò của chính mình.
-            </p>
-          </div>
-          {(
-            [
-              [
-                "Khám phá",
-                [
-                  ["Danh mục", "#danh-muc"],
-                  ["Sản phẩm", "/san-pham"],
-                ],
-              ],
-              [
-                "Tài khoản",
-                [
-                  ["Thông tin tài khoản", "/tai-khoan"],
-                  ["Giỏ hàng", "/gio-hang"],
-                ],
-              ],
-              [
-                "Cộng tác",
-                [
-                  ["Hồ sơ Creator", "/creator/dang-ky"],
-                  ["Hỏi đáp", "#faq"],
-                ],
-              ],
-            ] as const
-          ).map(([heading, links]) => (
-            <div key={heading}>
-              <h3 className="font-display font-bold">{heading}</h3>
-              <ul className="mt-4 space-y-3">
-                {links.map(([label, href]) => (
-                  <li key={href}>
-                    <Link
-                      href={homeLink(href)}
-                      className="text-sm text-[#4a5568] hover:underline"
-                    >
-                      {label}
-                    </Link>
-                  </li>
+      <footer className="mt-auto rounded-t-[40px] bg-[#e8f1dd] pt-20 pb-8">
+        <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
+          <div className="grid items-start gap-8 sm:grid-cols-3 lg:grid-cols-12 lg:gap-x-12">
+            <div className="sm:col-span-3 lg:col-span-5">
+              <a
+                href={home ? "#top" : "/"}
+                className="rounded-md font-display text-2xl font-extrabold tracking-[-.04em] outline-none focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
+              >
+                bloomie<span className="text-[#f58220]">.</span>
+              </a>
+              <p className="mt-4 max-w-[360px] text-base leading-[1.6] text-[#4a5568]">
+                Dụng cụ học tập giúp bé khám phá thế giới bằng đôi tay và trí tò
+                mò của chính mình.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                {[
+                  {
+                    label: "Facebook",
+                    href: "https://www.facebook.com/",
+                    path: "M14 21v-8h3l.5-3H14V8c0-.9.3-1.5 1.6-1.5H18V3.8a17 17 0 0 0-2.4-.2C13 3.6 11 5.2 11 8v2H8v3h3v8h3Z",
+                  },
+                  {
+                    label: "TikTok",
+                    href: "https://www.tiktok.com/",
+                    path: "M14 3h3a4 4 0 0 0 4 4v3a7 7 0 0 1-4-1.3V16a5 5 0 1 1-5-5v3a2 2 0 1 0 2 2V3Z",
+                  },
+                  {
+                    label: "YouTube",
+                    href: "https://www.youtube.com/",
+                    path: "M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4a2.5 2.5 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8c1.6.4 7.8.4 7.8.4s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8ZM10 15v-6l5.2 3-5.2 3Z",
+                  },
+                ].map(({ label, href, path }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    aria-label={label}
+                    className="grid size-11 place-items-center rounded-full bg-white text-[#245c45] transition-colors hover:bg-[#f4f8ed]"
+                  >
+                    <svg aria-hidden="true" className="size-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path fillRule="evenodd" d={path} />
+                    </svg>
+                  </a>
                 ))}
-              </ul>
+              </div>
             </div>
-          ))}
-        </div>
-        <div className="mx-auto flex max-w-[1200px] flex-col gap-2 border-t border-[#1f3d33]/8 px-5 py-5 text-xs text-[#68736f] sm:flex-row sm:justify-between md:px-8">
-          <p>© Bloomie</p>
-          <p>Thiết kế với sự tận tâm dành cho trẻ em Việt.</p>
-        </div>
-      </footer>
-    </div>
-  );
-}
+            {(
+              [
+                [
+                  "Khám phá",
+                  [
+                    ["Danh mục", "#danh-muc"],
+                    ["Sản phẩm", "/san-pham"],
+                  ],
+                ],
+                [
+                  "Tài khoản",
+                  [
+                    ["Thông tin tài khoản", "/tai-khoan"],
+                    ["Giỏ hàng", "/gio-hang"],
+                  ],
+                ],
+                [
+                  "Cộng tác",
+                  [
+                    ["Hồ sơ Creator", "/creator/dang-ky"],
+                    ["Hỏi đáp", "#faq"],
+                  ],
+                ],
+              ] as const
+            ).map(([heading, links]) => (
+              <div key={heading} className="min-w-0 lg:col-span-2 lg:last:col-span-3">
