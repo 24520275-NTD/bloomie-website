@@ -1,3 +1,35 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState, type ReactNode } from "react";
+import AccountNav from "./account-nav";
+import { Icon } from "./bloomie-icon";
+import { useCart } from "../lib/cart";
+import "../home.css";
+
+const navigation = [
+  ["Danh mục", "#danh-muc"],
+  ["Sản phẩm", "#san-pham"],
+  ["Vì sao chọn Bloomie", "#loi-ich"],
+  ["Hỏi đáp", "#faq"],
+  ["Học liệu", "/hoc-lieu"],
+  ["Creator", "/creator/dang-ky"],
+] as const;
+
+export default function Storefront({
+  children,
+  home = false,
+  productIds,
+}: {
+  children: ReactNode;
+  home?: boolean;
+  productIds?: string[];
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const showHeader = pathname !== "/dang-nhap" && pathname !== "/dang-ky";
+  const { cart } = useCart();
   const count = (productIds ?? Object.keys(cart)).reduce(
     (total, id) => total + (cart[id] ?? 0),
     0,
@@ -125,7 +157,12 @@
                     aria-label={label}
                     className="grid size-11 place-items-center rounded-full bg-white text-[#245c45] transition-colors hover:bg-[#f4f8ed]"
                   >
-                    <svg aria-hidden="true" className="size-5" viewBox="0 0 24 24" fill="currentColor">
+                    <svg
+                      aria-hidden="true"
+                      className="size-5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
                       <path fillRule="evenodd" d={path} />
                     </svg>
                   </a>
@@ -157,4 +194,34 @@
                 ],
               ] as const
             ).map(([heading, links]) => (
-              <div key={heading} className="min-w-0 lg:col-span-2 lg:last:col-span-3">
+              <div
+                key={heading}
+                className="min-w-0 lg:col-span-2 lg:last:col-span-3"
+              >
+                <h3 className="font-display text-lg font-bold text-[#1f3d33]">
+                  {heading}
+                </h3>
+                <ul className="mt-6 space-y-4">
+                  {links.map(([label, href]) => (
+                    <li key={href}>
+                      <Link
+                        href={homeLink(href)}
+                        className="block text-base leading-[1.6] text-[#4a5568] no-underline transition-colors hover:text-[#245c45]"
+                      >
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="mt-12 flex flex-col gap-2 border-t border-[#1f3d33]/12 pt-6 text-sm text-[#4a5568] sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <p>© 2026 Bloomie</p>
+            <p>Thiết kế với sự tận tâm dành cho trẻ em Việt.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
