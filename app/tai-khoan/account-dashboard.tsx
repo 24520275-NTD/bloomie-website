@@ -19,7 +19,7 @@ const creator = {
   title: "Chương trình Bloomie Creator",
   description: "Đăng ký hợp tác hoặc xem tiến độ xét duyệt hồ sơ Creator của bạn.",
 };
-type Dialog = { title: string; description?: string; edit?: boolean; userId: string };
+type Dialog = { title: string; description?: string; edit?: boolean; orderId?: string; userId: string };
 
 type OrderResult = {
   userId: string;
@@ -53,6 +53,8 @@ export default function AccountDashboard({
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const [savingName, setSavingName] = useState(false);
   const [nameError, setNameError] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const accountDialog = dialog?.userId === userId ? dialog : null;
 
@@ -207,6 +209,47 @@ export default function AccountDashboard({
     }
   }
 
+  function confirmCancellation(id: string) {
+    setCancelError("");
+    setDialog({
+      title: "Hủy đơn hàng",
+      description: `Bạn có muốn hủy đơn #${id.slice(0, 8).toUpperCase()} không?`,
+      orderId: id,
+      userId: activeUserId,
+    });
+  }
+
+  async function cancelOrder(event: FormEvent<HTMLFormElement>, id: string) {
+    event.preventDefault();
+    if (!supabase || cancelling) return;
+    setCancelling(true);
+    setCancelError("");
+
+    try {
+      const { error } = await supabase.rpc("cancel_pending_order", { p_order_id: id });
+      if (error) {
+        setCancelError(error.code === "P0001" ? error.message : "Chưa hủy được đơn. Bạn thử lại nhé.");
+        return;
+      }
+
+      setResult((value) => {
+        if (value?.userId !== activeUserId) return value;
+        if (!value.orders.some((order) => order.id === id && order.status === "pending_payment")) return value;
+        return {
+          ...value,
+          pending: value.pending === null ? null : Math.max(0, value.pending - 1),
+          orders: value.orders.map((order) => order.id === id ? { ...order, status: "cancelled" } : order),
+        };
+      });
+      setNotice("Đã hủy đơn hàng.");
+      setDialog((value) => value?.userId === activeUserId && value.orderId === id ? null : value);
+    } catch {
+      setCancelError("Chưa hủy được đơn. Bạn thử lại nhé.");
+    } finally {
+      setCancelling(false);
+    }
+  }
+
   async function saveName(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!supabase || savingName) return;
@@ -281,7 +324,7 @@ export default function AccountDashboard({
                 </div>
               )}
               <div className="grid gap-4">
-                {accountOrders?.orders.map((order) => <OrderCard key={order.id} order={order} productImages={productImages} onCopy={copyOrder} />)}
+                {accountOrders?.orders.map((order) => <OrderCard key={order.id} order={order} productImages={productImages} onCopy={copyOrder} onCancel={confirmCancellation} />)}
               </div>
               {allOrders && total !== null && total > ordersPerPage && (
                 <nav aria-label="Các trang đơn hàng" className="mt-4 flex flex-wrap gap-2">
@@ -320,7 +363,22 @@ export default function AccountDashboard({
                 {nameError && <p role="alert" className="text-sm text-[#B42318]">{nameError}</p>}
                 <button type="submit" disabled={savingName} className="acct-btn acct-primary w-full disabled:opacity-60">{savingName ? "Đang lưu…" : "Lưu thay đổi"}</button>
               </form>
-            ) : <p className="mt-3 text-sm leading-6 text-[#4A5568]">{accountDialog.description}</p>}
+            ) : (
+              <div className="mt-3 space-y-3 text-sm leading-6 text-[#4A5568]">
+                <p>{accountDialog.description}</p>
+                {accountDialog.orderId && (
+                  <form onSubmit={(event) => void cancelOrder(event, accountDialog.orderId!)} className="space-y-3">
+                    {cancelError && <p role="alert" className="text-[#B42318]">{cancelError}</p>}
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <button type="button" onClick={() => dialogRef.current?.close()} className="acct-btn acct-light">Giữ đơn</button>
+                      <button type="submit" disabled={cancelling} className="acct-btn bg-[#B42318] text-white hover:bg-[#902017] disabled:opacity-60">
+                        {cancelling ? "Đang hủy…" : "Xác nhận hủy"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
           </>
         )}
       </dialog>

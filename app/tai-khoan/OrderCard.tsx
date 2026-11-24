@@ -26,10 +26,11 @@ const dateTime = new Intl.DateTimeFormat("vi-VN", {
   dateStyle: "short", timeStyle: "short", timeZone: "Asia/Ho_Chi_Minh",
 });
 
-export default function OrderCard({ order, productImages, onCopy }: {
+export default function OrderCard({ order, productImages, onCopy, onCancel }: {
   order: Order;
   productImages: Record<string, string>;
   onCopy: (id: string) => void;
+  onCancel: (id: string) => void;
 }) {
   const status = statuses[order.status];
   const StatusIcon = status?.icon;
@@ -82,6 +83,11 @@ export default function OrderCard({ order, productImages, onCopy }: {
           </Link>
         )}
         <Link href={detail} className="acct-btn acct-light w-full sm:w-auto">Xem chi tiết đơn</Link>
+        {pending && (
+          <button type="button" onClick={() => onCancel(order.id)} className="acct-btn w-full text-[#B42318] hover:bg-[#FFF1EF] sm:ml-auto sm:w-auto">
+            Hủy đơn hàng
+          </button>
+        )}
       </footer>
     </article>
   );

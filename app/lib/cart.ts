@@ -102,6 +102,19 @@ function updateCart(key: string | null, id: string, amount: number) {
   return true;
 }
 
+function removePurchasedItems(key: string | null, purchased: Cart) {
+  if (!key || key !== activeKey) return;
+
+  const cart = decodeCart(localStorage.getItem(key) ?? "");
+  for (const [id, units] of Object.entries(purchased)) {
+    const remaining = (cart[id] ?? 0) - units;
+    if (remaining > 0) cart[id] = remaining;
+    else delete cart[id];
+  }
+  localStorage.setItem(key, JSON.stringify(cart));
+  window.dispatchEvent(new Event(changeEvent));
+}
+
 export function useCart() {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, () => null);
   const separator = typeof snapshot === "string" ? snapshot.indexOf("\n") : -1;
@@ -114,5 +127,6 @@ export function useCart() {
     ready: snapshot !== null,
     storageUnavailable: snapshot === unavailable,
     changeCartQuantity: (id: string, amount: number) => updateCart(key, id, amount),
+    removePurchasedItems: (purchased: Cart) => removePurchasedItems(key, purchased),
   };
 }

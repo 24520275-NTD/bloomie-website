@@ -12,14 +12,14 @@ const money = new Intl.NumberFormat("vi-VN", {
 });
 
 export default function CheckoutForm({ products }: { products: Product[] }) {
-  const { cart, ownerId, ready, storageUnavailable, changeCartQuantity } =
+  const { cart, ownerId, ready, storageUnavailable, changeCartQuantity, removePurchasedItems } =
     useCart();
   const submitting = useRef(false);
   const request = useRef<{ key: string; id: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [needsLogin, setNeedsLogin] = useState(false);
-  const [orderId, setOrderId] = useState("");
+  const [createdOrder, setCreatedOrder] = useState<{ id: string; ownerId: string } | null>(null);
 
   const items = products.filter(({ id }) => cart[id] > 0);
   const missingIds = Object.keys(cart).filter(
@@ -97,7 +97,12 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
       }
 
       if (typeof data === "string" && data) {
-        setOrderId(data);
+        setCreatedOrder({ id: data, ownerId: user.id });
+        try {
+          removePurchasedItems(payload.p_cart);
+        } catch {
+          setMessage("Đơn đã được ghi nhận. Giỏ hàng chưa được cập nhật trên trình duyệt này.");
+        }
       } else {
         setMessage(
           "Chưa nhận được mã đơn. Bạn có thể thử lại với thông tin hiện tại.",
@@ -113,12 +118,14 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
     }
   }
 
-  if (orderId) {
+  if (createdOrder && createdOrder.ownerId === ownerId) {
+    const orderId = createdOrder.id;
     return (
       <section className="mt-6 rounded-2xl bg-green-50 p-5" role="status">
         <h2 className="font-bold">Đã tạo đơn hàng</h2>
         <p className="mt-2 break-all">Mã đơn {orderId}</p>
-        <p className="mt-2">Trạng thái: Chờ thanh toán</p>
+        <p className="mt-2">Bạn có thể kiểm tra trạng thái và thanh toán trong chi tiết đơn.</p>
+        {message && <p className="mt-2 text-sm">{message}</p>}
         <Link href={`/don-hang/${orderId}`} className="bloomie-button mt-4">
           Xem chi tiết đơn hàng
         </Link>
