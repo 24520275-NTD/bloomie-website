@@ -1,10 +1,11 @@
-import { ArrowRight, ChevronRight, LogOut, MapPin, Pencil, Sparkles, Star } from "lucide-react";
+import { ArrowRight, ChevronRight, LogOut, Pencil, Sparkles, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 export type MenuItemData = {
   id?: string;
   href?: string;
+  onClick?: () => void;
   label: string;
   icon: LucideIcon;
   detail?: string;
@@ -44,7 +45,7 @@ function MenuItem({ item, pending, onNotice, mobile = false }: {
   ) : item.id ? (
     <a href={`#${item.id}`} aria-current={selected ? "location" : undefined} className={className}>{content}</a>
   ) : (
-    <button type="button" onClick={() => onNotice(item.label)} className={className}>{content}</button>
+    <button type="button" aria-haspopup="dialog" onClick={item.onClick ?? (() => onNotice(item.label))} className={className}>{content}</button>
   );
 }
 
@@ -109,31 +110,6 @@ export function StatCard({ stat }: { stat: { label: string; value: number | stri
       <p className="acct-heading mt-2 text-[34px] leading-none font-extrabold">{stat.value ?? "—"}</p>
       <p className="mt-2 text-xs leading-5 text-[#4A5568]">{stat.description}</p>
     </article>
-  );
-}
-
-export function AddressCard({ address, onEdit }: {
-  address?: { recipient: string; street: string };
-  onEdit: () => void;
-}) {
-  return (
-    <section id="dia-chi" className="acct-card scroll-mt-6 bg-white p-5 sm:p-6">
-      <header className="flex flex-wrap items-center gap-2">
-        <span className="acct-icon bg-[#E8F1DD] text-[#245C45]"><MapPin size={17} aria-hidden="true" /></span>
-        <h2 className="acct-heading flex-1 text-base leading-5 font-bold">Địa chỉ giao mặc định</h2>
-        {address && <span className="acct-tag bg-[#E8F1DD] text-[#245C45]">Mặc định</span>}
-      </header>
-      {address ? <address className="mt-4 text-sm leading-6 not-italic">
-        <p className="font-semibold">{address.recipient}</p>
-        <p className="mt-1 text-[#4A5568]">{address.street}</p>
-      </address> : <p className="mt-4 text-sm leading-6 text-[#4A5568]">Bạn chưa lưu địa chỉ giao hàng mặc định.</p>}
-      <div className="mt-4 border-t border-[#E7EDE2] pt-3">
-        <button type="button" onClick={onEdit} className="acct-btn text-[#245C45] hover:bg-[#F1F6EC]">
-          {address ? "Thay đổi địa chỉ giao hàng" : "Thêm địa chỉ giao hàng"}
-          <ChevronRight size={15} aria-hidden="true" />
-        </button>
-      </div>
-    </section>
   );
 }
 

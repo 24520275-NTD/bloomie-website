@@ -10,7 +10,7 @@ import { useCart } from "../lib/cart";
 import { defaultShippingAddressKey, parseShippingAddress } from "../lib/shipping-address";
 import { createClient, hasSupabaseConfig } from "../lib/supabase-browser";
 
-import { AccountSidebar, AddressCard, CreatorCard, StatCard, type MenuItemData } from "./AccountPanels";
+import { AccountSidebar, CreatorCard, StatCard, type MenuItemData } from "./AccountPanels";
 import OrderCard, { type Order } from "./OrderCard";
 import "../home.css";
 import "./account-dashboard.css";
@@ -205,7 +205,15 @@ export default function AccountDashboard({
     ] },
     { label: "TÀI KHOẢN", items: [
       { id: "thong-tin", label: "Thông tin cá nhân", icon: UserRound },
-      { id: "dia-chi", label: "Địa chỉ giao hàng", icon: MapPin },
+      {
+        label: "Địa chỉ giao hàng",
+        icon: MapPin,
+        detail: defaultAddress ? "Mặc định" : undefined,
+        onClick: () => {
+          setProfileError("");
+          setDialog({ title: "Địa chỉ giao mặc định", edit: "address", userId: activeUserId });
+        },
+      },
       { label: "Thông báo", icon: Bell },
       { label: "Cài đặt & Bảo mật", icon: Settings },
     ] },
@@ -367,19 +375,7 @@ export default function AccountDashboard({
               )}
             </section>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <AddressCard
-                address={defaultAddress ? {
-                  recipient: `${defaultAddress.name} · ${defaultAddress.phone}`,
-                  street: defaultAddress.address,
-                } : undefined}
-                onEdit={() => {
-                  setProfileError("");
-                  setDialog({ title: "Địa chỉ giao mặc định", edit: "address", userId: activeUserId });
-                }}
-              />
-              <CreatorCard creator={creator} />
-            </div>
+            <CreatorCard creator={creator} />
           </div>
         </div>
       </div>
