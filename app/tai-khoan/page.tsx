@@ -1,11 +1,27 @@
 import type { Metadata } from "next";
-import AccountForm from "../components/account-form";
+import { getProducts } from "../lib/products";
+import AccountDashboard from "./account-dashboard";
 
 export const metadata: Metadata = { title: "Tài khoản | Bloomie" };
 
-export default async function AccountPage({ searchParams }: {
+export default async function AccountPage({
+  searchParams,
+}: {
   searchParams: Promise<{ confirmation?: string | string[] }>;
 }) {
-  const { confirmation } = await searchParams;
-  return <AccountForm confirmationFailed={confirmation === "failed"} />;
+  const [{ confirmation }, { products }] = await Promise.all([
+    searchParams,
+    getProducts(),
+  ]);
+
+  const productImages = Object.fromEntries(
+    products.map(({ id, image }) => [id, image]),
+  );
+
+  return (
+    <AccountDashboard
+      confirmationFailed={confirmation === "failed"}
+      productImages={productImages}
+    />
+  );
 }
