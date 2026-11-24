@@ -73,7 +73,8 @@ export default async function ProductDetailPage({
               BỘ HỌC LIỆU BLOOMIE
             </p>
 
-            <h1 className="font-display mt-3 text-4xl leading-tight font-extrabold tracking-tight text-[#1f3d33] lg:text-5xl">
+            <h1 className="mt-3 text-4xl leading-tight font-bold tracking-tight text-[#1f3d33] lg:text-5xl">
+              {" "}
               {product.name}
             </h1>
 
