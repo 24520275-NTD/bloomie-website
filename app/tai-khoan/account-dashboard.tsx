@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Bell, Heart, MapPin, Package, Settings, ShoppingBag, Sparkles, Star, UserRound, X } from "lucide-react";
+import { Bell, ChevronDown, Heart, MapPin, Package, Settings, ShoppingBag, Sparkles, Star, UserRound, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import AccountForm from "../components/account-form";
 import Storefront from "../components/storefront";
@@ -16,7 +16,7 @@ import "./account-dashboard.css";
 
 const ordersPerPage = 5;
 const orderFilters = [
-  { value: "all", label: "Tất cả" },
+  { value: "all", label: "Tất cả đơn hàng" },
   { value: "paid", label: "Đã thanh toán" },
   { value: "pending_payment", label: "Chờ thanh toán" },
   { value: "cancelled", label: "Đã hủy" },
@@ -333,32 +333,27 @@ export default function AccountDashboard({
             <section id="don-hang" aria-labelledby="account-orders-title" className="scroll-mt-6">
               <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <h2 id="account-orders-title" className="acct-heading text-[28px] leading-tight font-bold">{allOrders ? "Tất cả đơn hàng" : "Đơn hàng gần đây"}</h2>
-                <button type="button" className="acct-btn acct-light" onClick={() => {
-                  setAllOrders(!allOrders);
-                  setOrderPage(0);
-                  setOrderFilter("all");
-                }}>
-                  {allOrders ? "Xem đơn gần đây" : `Xem tất cả đơn hàng${total === null ? "" : ` (${total})`} →`}
-                </button>
-              </header>
-              <div role="group" aria-label="Lọc theo trạng thái đơn hàng" className="mb-4 flex flex-wrap gap-2">
-                {orderFilters.map(({ value, label }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={orderFilter === value}
-                    className={`acct-btn ${orderFilter === value ? "acct-primary" : "acct-light"}`}
-                    onClick={() => {
-                      setOrderFilter(value);
+                <div className="relative">
+                  <select
+                    aria-label="Chọn danh sách đơn hàng"
+                    value={allOrders ? orderFilter : "recent"}
+                    className="acct-btn acct-light cursor-pointer appearance-none pr-9 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245C45]"
+                    onChange={(event) => {
+                      const value = event.currentTarget.value as OrderFilter | "recent";
+                      setAllOrders(value !== "recent");
+                      setOrderFilter(value === "recent" ? "all" : value);
                       setOrderPage(0);
                       setNotice("");
-                      if (value !== "all") setAllOrders(true);
                     }}
                   >
-                    {label}
-                  </button>
-                ))}
-              </div>
+                    <option value="recent">Xem đơn gần đây</option>
+                    {orderFilters.map(({ value, label }) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
+                  <ChevronDown aria-hidden="true" className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-[#245C45]" />
+                </div>
+              </header>
               <p role="status" className="wrap-break-word text-sm text-[#245C45] not-empty:mb-3">{notice}</p>
               {message && <p role="alert" className="mb-3 text-sm text-[#B42318]">{message}</p>}
               {!accountOrders && <p role="status">Đang tải đơn hàng…</p>}
