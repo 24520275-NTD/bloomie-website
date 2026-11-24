@@ -78,7 +78,6 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
       }
 
       const key = JSON.stringify([user.id, payload]);
-      const key = JSON.stringify([user.id, payload]);
       if (request.current?.key !== key) {
         request.current = { key, id: crypto.randomUUID() };
       }
