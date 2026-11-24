@@ -1,0 +1,93 @@
+@layer components {
+  .bloomie-account {
+    font-family: "Be Vietnam Pro", Arial, sans-serif;
+  }
+
+  .acct-heading {
+    font-family: "Bricolage Grotesque", "Be Vietnam Pro", Arial, sans-serif;
+  }
+
+  .acct-card {
+    border: 1px solid #e2ebdc;
+    border-radius: 32px;
+    box-shadow: 0 6px 24px rgb(31 61 51 / 4%);
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .acct-card:hover,
+  .acct-card:focus-within {
+    border-color: #c4d8ba;
+    box-shadow: 0 8px 26px rgb(31 61 51 / 8%);
+  }
+
+  .acct-card:active {
+    border-color: #9db99a;
+  }
+
+  .acct-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .acct-icon {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    place-items: center;
+    border-radius: 50%;
+  }
+
+  .acct-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: center;
+  }
+
+  .acct-light {
+    border: 1px solid #dce8d5;
+    background: white;
+    color: #1f3d33;
+  }
+
+  .acct-light:hover {
+    background: #f3f8ef;
+  }
+
+  .acct-primary {
+    background: #245c45;
+    color: white;
+  }
+
+  .acct-primary:hover {
+    background: #194734;
+  }
+
+  .bloomie-account :is(button, a) {
+    cursor: pointer;
+    transition: background-color 150ms ease, transform 150ms ease;
+  }
+
+  .bloomie-account :is(button, a):focus-visible {
+    outline: 2px solid #245c45;
+    outline-offset: 2px;
+  }
+
+  .bloomie-account :is(button, a):active {
+    transform: translateY(1px);
+  }
+}

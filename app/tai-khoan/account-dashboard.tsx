@@ -1,29 +1,25 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Bell, Heart, MapPin, Package, Settings, ShoppingBag, Sparkles, Star, UserRound, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import AccountForm from "../components/account-form";
-import { Icon } from "../components/bloomie-icon";
 import Storefront from "../components/storefront";
 import { useCart } from "../lib/cart";
 import { createClient, hasSupabaseConfig } from "../lib/supabase-browser";
 
-type Order = {
-  id: string;
-  created_at: string;
-  status: string;
-  total_vnd: number;
-  recipient_name: string;
-  recipient_phone: string;
-  shipping_address: string;
-  order_items: {
-    product_id: string;
-    product_name: string;
-    quantity: number;
-  }[];
+import { AccountSidebar, AddressCard, CreatorCard, StatCard, type MenuItemData } from "./AccountPanels";
+import OrderCard, { type Order } from "./OrderCard";
+import "../home.css";
+import "./account-dashboard.css";
+
+const ordersPerPage = 5;
+const creator = {
+  title: "Chương trình Bloomie Creator",
+  description: "Đăng ký hợp tác hoặc xem tiến độ xét duyệt hồ sơ Creator của bạn.",
 };
+type Dialog = { title: string; description?: string; edit?: boolean; userId: string };
 
 type OrderResult = {
   userId: string;
@@ -31,27 +27,8 @@ type OrderResult = {
   total: number | null;
   pending: number | null;
   failed: boolean;
+  page: number;
 };
-
-const money = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-});
-
-const dateTime = new Intl.DateTimeFormat("vi-VN", {
-  dateStyle: "short",
-  timeStyle: "short",
-  timeZone: "Asia/Ho_Chi_Minh",
-});
-
-const statusLabels: Record<string, string> = {
-  pending_payment: "Chờ thanh toán",
-  paid: "Đã thanh toán",
-  paid_simulated: "Đã thanh toán giả lập",
-  cancelled: "Đã hủy",
-};
-
-const card = "rounded-[28px] border border-[#e2eadc] bg-white p-5 shadow-sm";
 
 export default function AccountDashboard({
   confirmationFailed,
@@ -70,6 +47,20 @@ export default function AccountDashboard({
   const [message, setMessage] = useState("");
   const { cart, ownerId, ready, storageUnavailable } = useCart();
   const userId = user?.id;
+  const [orderPage, setOrderPage] = useState(0);
+  const [allOrders, setAllOrders] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [dialog, setDialog] = useState<Dialog | null>(null);
+  const [savingName, setSavingName] = useState(false);
+  const [nameError, setNameError] = useState("");
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const accountDialog = dialog?.userId === userId ? dialog : null;
+
+  useEffect(() => {
+    const element = dialogRef.current;
+    if (accountDialog && element && !element.open) element.showModal();
+    if (!accountDialog && element?.open) element.close();
+  }, [accountDialog]);
 
   useEffect(() => {
     if (!supabase) return;
@@ -85,6 +76,7 @@ export default function AccountDashboard({
   useEffect(() => {
     if (!supabase || !userId) return;
     let active = true;
+    const offset = orderPage * ordersPerPage;
 
     async function loadOrders() {
       try {
@@ -96,7 +88,8 @@ export default function AccountDashboard({
             )
             .eq("user_id", userId!)
             .order("created_at", { ascending: false })
-            .limit(5),
+            .order("id", { ascending: false })
+            .range(offset, offset + ordersPerPage - 1),
           supabase!.from("orders")
             .select("id", { count: "exact", head: true })
             .eq("user_id", userId!)
@@ -112,6 +105,7 @@ export default function AccountDashboard({
           total: recent.count,
           pending: pending.error ? null : pending.count,
           failed: false,
+          page: orderPage,
         });
       } catch {
         if (active) {
@@ -121,6 +115,7 @@ export default function AccountDashboard({
             total: null,
             pending: null,
             failed: true,
+            page: orderPage,
           });
         }
       }
@@ -128,7 +123,7 @@ export default function AccountDashboard({
 
     void loadOrders();
     return () => { active = false; };
-  }, [supabase, userId]);
+  }, [supabase, userId, orderPage]);
 
   async function signOut() {
     if (!supabase || signingOut) return;
@@ -139,6 +134,10 @@ export default function AccountDashboard({
       const { error } = await supabase.auth.signOut({ scope: "local" });
       if (error) throw error;
       setResult(null);
+      setOrderPage(0);
+      setAllOrders(false);
+      setNotice("");
+      setDialog(null);
       setUser(null);
     } catch {
       setMessage("Chưa đăng xuất được. Bạn thử lại nhé.");
@@ -165,182 +164,166 @@ export default function AccountDashboard({
     user.email?.split("@")[0] ||
     "bạn";
 
-  const accountOrders = result?.userId === user.id ? result : null;
-  const latestOrder = accountOrders?.orders[0];
-  const cartCount =
-    ready && !storageUnavailable && ownerId === user.id
-      ? Object.values(cart).reduce((sum, quantity) => sum + quantity, 0)
-      : null;
-
+  const accountOrders = result?.userId === user.id && result.page === orderPage ? result : null;
+  const latestOrder = orderPage === 0 ? accountOrders?.orders[0] : null;
+  const cartCount = ready && !storageUnavailable && ownerId === user.id
+    ? Object.values(cart).reduce((sum, quantity) => sum + quantity, 0)
+    : null;
+  const pending = accountOrders?.pending ?? null;
+  const total = accountOrders?.total ?? null;
   const stats = [
-    { label: "Chờ thanh toán", value: accountOrders?.pending, icon: "bag" },
-    { label: "Tổng đơn hàng", value: accountOrders?.total, icon: "book" },
-    { label: "Sản phẩm trong giỏ", value: cartCount, icon: "check" },
-  ] as const;
+    { label: "ĐANG XỬ LÝ", value: pending, description: pending === null ? "Đơn chờ thanh toán" : `${pending} đơn chờ thanh toán`, icon: Package },
+    { label: "YÊU THÍCH", value: null, description: "Chưa có dữ liệu", icon: Heart },
+    { label: "ĐIỂM BLOOMIE", value: null, description: "Chưa có dữ liệu", icon: Star },
+  ];
+  const menu: { label: string; items: MenuItemData[] }[] = [
+    { label: "MUA SẮM", items: [
+      { id: "don-hang", label: "Đơn hàng của tôi", icon: Package },
+      { label: "Yêu thích", icon: Heart },
+      { href: "/gio-hang", label: "Giỏ hàng", icon: ShoppingBag, detail: cartCount === null ? undefined : `${cartCount} món` },
+    ] },
+    { label: "TÀI KHOẢN", items: [
+      { id: "thong-tin", label: "Thông tin cá nhân", icon: UserRound },
+      { id: "dia-chi", label: "Địa chỉ giao hàng", icon: MapPin },
+      { label: "Thông báo", icon: Bell },
+      { label: "Cài đặt & Bảo mật", icon: Settings },
+    ] },
+    { label: "CỘNG TÁC", items: [
+      { href: "/creator/dang-ky", label: "Hồ sơ Creator", icon: Sparkles },
+    ] },
+  ];
+  const activeUserId = user.id;
+
+  function openNotice(title: string) {
+    setDialog({ title, description: "Tính năng này chưa được hỗ trợ trên Bloomie.", userId: activeUserId });
+  }
+
+  async function copyOrder(id: string) {
+    try {
+      await navigator.clipboard.writeText(id);
+      setNotice("Đã sao chép mã đơn hàng.");
+    } catch {
+      setNotice(`Mã đơn hàng: ${id}`);
+    }
+  }
+
+  async function saveName(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase || savingName) return;
+    const fullName = String(new FormData(event.currentTarget).get("full_name") ?? "").trim();
+    if (!fullName) {
+      setNameError("Vui lòng nhập họ và tên.");
+      return;
+    }
+
+    setSavingName(true);
+    setNameError("");
+    try {
+      const { data: current, error: sessionError } = await supabase.auth.getUser();
+      if (sessionError || current.user?.id !== activeUserId) throw Error("Phiên đăng nhập đã thay đổi.");
+      const { data, error } = await supabase.auth.updateUser({ data: { full_name: fullName } });
+      if (error || !data.user) throw error ?? Error("Chưa nhận được hồ sơ.");
+      setUser((value) => value?.id === data.user.id ? data.user : value);
+      dialogRef.current?.close();
+    } catch {
+      setNameError("Chưa lưu được tên. Bạn thử lại nhé.");
+    } finally {
+      setSavingName(false);
+    }
+  }
 
   return (
-    <Storefront>
-      <main className="mx-auto w-full max-w-[1200px] px-5 py-8 md:px-8 md:py-12">
+    <main className="bloomie-account min-h-screen bg-[#FFFDF8] text-[#1F3D33]">
+      <div className="mx-auto max-w-[1200px] px-4 pt-4 pb-16 sm:px-6">
         <header>
-          <p className="inline-flex rounded-full bg-[#e8f1dd] px-3 py-1 text-xs font-bold text-[#245c45]">
-            TÀI KHOẢN CỦA TÔI
-          </p>
-          <h1 className="mt-3 wrap-break-word text-3xl font-bold tracking-tight sm:text-4xl">
-            Xin chào, {displayName}
-          </h1>
-          <p className="mt-2 text-sm text-[#52645a]">
-            Xem đơn hàng, giỏ hàng và thông tin tài khoản Bloomie.
-          </p>
+          <p className="acct-tag bg-[#E8F1DD] text-[#245C45]"><span aria-hidden="true">●</span> TÀI KHOẢN CỦA TÔI</p>
+          <h1 className="acct-heading mt-2 wrap-break-word text-[34px] leading-[1.1] font-extrabold tracking-tight sm:text-[48px]">Xin chào, {displayName}</h1>
+          <p className="mt-2 text-sm leading-6 text-[#4A5568]">Quản lý đơn hàng, danh sách yêu thích và thông tin cá nhân của bạn tại Bloomie.</p>
         </header>
 
-        <div className="mt-8 grid items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="space-y-4">
-            <section className="rounded-[28px] bg-[#e8f1dd] p-6 text-center">
-              <div className="mx-auto grid size-16 place-items-center rounded-full bg-[#245c45] text-2xl font-bold text-white">
-                {displayName.charAt(0).toLocaleUpperCase("vi")}
-              </div>
-              <p className="mt-3 wrap-break-word font-bold">{displayName}</p>
-              <p className="mt-1 break-all text-sm text-[#52645a]">{user.email}</p>
+        <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+          <AccountSidebar
+            profile={{ initial: displayName.charAt(0).toLocaleUpperCase("vi"), name: displayName, email: user.email }}
+            menu={menu}
+            pending={pending}
+            onNotice={openNotice}
+            onEdit={() => {
+              setNameError("");
+              setDialog({ title: "Chỉnh sửa hồ sơ", edit: true, userId: activeUserId });
+            }}
+            onSignOut={signOut}
+            signingOut={signingOut}
+          />
+
+          <div className="grid min-w-0 gap-8">
+            <section aria-label="Thống kê tài khoản" className="grid gap-4 sm:grid-cols-3">
+              {stats.map((stat) => <StatCard key={stat.label} stat={stat} />)}
             </section>
 
-            <nav aria-label="Menu tài khoản" className={card}>
-              <a href="#don-hang" className="block rounded-xl bg-[#e8f1dd] px-3 py-2.5 text-sm font-semibold text-[#245c45]">
-                Đơn hàng của tôi
-              </a>
-              <Link href="/gio-hang" className="mt-1 block rounded-xl px-3 py-2.5 text-sm hover:bg-[#f0f6eb]">
-                Giỏ hàng
-              </Link>
-              <Link href="/creator/dang-ky" className="mt-1 block rounded-xl px-3 py-2.5 text-sm hover:bg-[#f0f6eb]">
-                Hồ sơ Creator
-              </Link>
-              <button
-                type="button"
-                onClick={signOut}
-                disabled={signingOut}
-                className="mt-4 w-full rounded-full border border-[#efd8d5] px-4 py-2 text-sm font-semibold text-[#a32a26] hover:bg-red-50 disabled:opacity-60"
-              >
-                {signingOut ? "Đang đăng xuất…" : "Đăng xuất"}
-              </button>
-              {message && <p role="alert" className="mt-2 text-sm">{message}</p>}
-            </nav>
-          </aside>
-
-          <div className="min-w-0 space-y-6">
-            <div className="grid gap-3 sm:grid-cols-3">
-              {stats.map(({ label, value, icon }) => (
-                <div key={label} className={card}>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold text-[#52645a]">{label}</p>
-                    <span className="rounded-full bg-[#e8f1dd] p-2 text-[#245c45]">
-                      <Icon name={icon} className="size-4" />
-                    </span>
-                  </div>
-                  <p className="mt-2 text-3xl font-bold">{value ?? "—"}</p>
-                </div>
-              ))}
-            </div>
-
-            <section id="don-hang" className="scroll-mt-6">
-              <h2 className="mb-3 text-xl font-bold">Đơn hàng gần đây</h2>
-
+            <section id="don-hang" aria-labelledby="account-orders-title" className="scroll-mt-6">
+              <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <h2 id="account-orders-title" className="acct-heading text-[28px] leading-tight font-bold">{allOrders ? "Tất cả đơn hàng" : "Đơn hàng gần đây"}</h2>
+                <button type="button" className="acct-btn acct-light" onClick={() => {
+                  setAllOrders(!allOrders);
+                  setOrderPage(0);
+                }}>
+                  {allOrders ? "Xem đơn gần đây" : `Xem tất cả đơn hàng${total === null ? "" : ` (${total})`} →`}
+                </button>
+              </header>
+              <p role="status" className="wrap-break-word text-sm text-[#245C45] not-empty:mb-3">{notice}</p>
+              {message && <p role="alert" className="mb-3 text-sm text-[#B42318]">{message}</p>}
               {!accountOrders && <p role="status">Đang tải đơn hàng…</p>}
-              {accountOrders?.failed && (
-                <p role="alert" className={card}>Chưa tải được đơn hàng. Hãy tải lại trang.</p>
-              )}
+              {accountOrders?.failed && <p role="alert" className="acct-card bg-white p-5">Chưa tải được đơn hàng. Hãy tải lại trang.</p>}
               {accountOrders && !accountOrders.failed && accountOrders.orders.length === 0 && (
-                <div className={card}>
-                  <p>Bạn chưa có đơn hàng.</p>
-                  <Link href="/san-pham" className="mt-2 inline-block font-semibold text-[#245c45] underline">
-                    Khám phá sản phẩm
-                  </Link>
+                <div className="acct-card bg-white p-5">
+                  <p>Chưa có đơn hàng để hiển thị.</p>
+                  <Link href="/san-pham" className="acct-btn acct-primary mt-3">Khám phá sản phẩm</Link>
                 </div>
               )}
-
-              <div className="space-y-3">
-                {accountOrders?.orders.map((order) => (
-                  <article key={order.id} className={card}>
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e2eadc] pb-3 text-sm">
-                      <p>
-                        <strong>#{order.id.slice(0, 8).toUpperCase()}</strong>
-                        <span className="ml-2 text-xs text-[#52645a]">
-                          {dateTime.format(new Date(order.created_at))}
-                        </span>
-                      </p>
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        order.status === "pending_payment"
-                          ? "bg-[#fff2cd] text-[#774c13]"
-                          : "bg-[#edf4e7] text-[#245c45]"
-                      }`}>
-                        {statusLabels[order.status] ?? order.status}
-                      </span>
-                    </div>
-
-                    <ul className="divide-y divide-[#e2eadc]">
-                      {order.order_items.map((item) => (
-                        <li key={item.product_id} className="flex items-center gap-3 py-3">
-                          <div className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#f0f6eb] text-[#245c45]">
-                            {productImages[item.product_id] ? (
-                              <Image src={productImages[item.product_id]} alt="" fill sizes="48px" className="object-contain p-1" />
-                            ) : (
-                              <Icon name="book" className="size-5" />
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="wrap-break-word text-sm font-semibold">{item.product_name}</p>
-                            <p className="text-xs text-[#52645a]">Số lượng: {item.quantity}</p>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e2eadc] pt-3">
-                      <p className="text-sm">
-                        Tổng tiền <strong className="ml-1 text-lg">{money.format(order.total_vnd)}</strong>
-                      </p>
-                      <Link href={`/don-hang/${order.id}`} className="rounded-full bg-[#245c45] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1c4b38]">
-                        {order.status === "pending_payment"
-                          ? "Thanh toán bằng ví giả lập →"
-                          : "Xem chi tiết đơn →"}
-                      </Link>
-                    </div>
-                  </article>
-                ))}
+              <div className="grid gap-4">
+                {accountOrders?.orders.map((order) => <OrderCard key={order.id} order={order} productImages={productImages} onCopy={copyOrder} />)}
               </div>
+              {allOrders && total !== null && total > ordersPerPage && (
+                <nav aria-label="Các trang đơn hàng" className="mt-4 flex flex-wrap gap-2">
+                  <button type="button" className="acct-btn acct-light disabled:opacity-60" disabled={orderPage === 0} onClick={() => setOrderPage(orderPage - 1)}>Trang trước</button>
+                  <button type="button" className="acct-btn acct-light disabled:opacity-60" disabled={(orderPage + 1) * ordersPerPage >= total} onClick={() => setOrderPage(orderPage + 1)}>Trang sau</button>
+                </nav>
+              )}
             </section>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <section className={card}>
-                <h2 className="font-bold">Địa chỉ giao gần nhất</h2>
-                {latestOrder ? (
-                  <div className="mt-2 space-y-1 text-sm">
-                    <p className="font-semibold">{latestOrder.recipient_name}</p>
-                    <p>{latestOrder.recipient_phone}</p>
-                    <p className="wrap-break-word text-[#52645a]">{latestOrder.shipping_address}</p>
-                  </div>
-                ) : (
-                  <p className="mt-2 text-sm text-[#52645a]">
-                    {accountOrders?.failed
-                      ? "Chưa tải được địa chỉ."
-                      : accountOrders
-                        ? "Chưa có địa chỉ từ đơn hàng."
-                        : "Đang tải địa chỉ…"}
-                  </p>
-                )}
-              </section>
-
-              <section className="rounded-[28px] bg-[#e8f1dd] p-5">
-                <h2 className="font-bold">Chương trình Bloomie Creator</h2>
-                <p className="mt-2 text-sm leading-6 text-[#52645a]">
-                  Đăng ký hợp tác hoặc xem tiến độ hồ sơ Creator của bạn.
-                </p>
-                <Link href="/creator/dang-ky" className="mt-4 inline-block rounded-full bg-[#245c45] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1c4b38]">
-                  Mở hồ sơ Creator →
-                </Link>
-              </section>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <AddressCard
+                address={latestOrder ? {
+                  recipient: `${latestOrder.recipient_name} ${latestOrder.recipient_phone}`,
+                  street: latestOrder.shipping_address,
+                } : undefined}
+                emptyText={orderPage > 0 ? "Xem đơn gần đây để kiểm tra địa chỉ giao mới nhất." : accountOrders?.failed ? "Chưa tải được địa chỉ." : accountOrders ? "Chưa có địa chỉ từ đơn hàng." : "Đang tải địa chỉ…"}
+              />
+              <CreatorCard creator={creator} />
             </div>
           </div>
         </div>
-      </main>
-    </Storefront>
+      </div>
+
+      <dialog ref={dialogRef} onClose={() => setDialog(null)} aria-labelledby="account-dialog-title" className="acct-card fixed inset-0 m-auto w-[calc(100%_-_2rem)] max-w-md bg-white p-6 text-[#1F3D33] backdrop:bg-[#1F3D33]/45">
+        {accountDialog && (
+          <>
+            <div className="flex items-start justify-between gap-4">
+              <h2 id="account-dialog-title" className="acct-heading text-2xl font-bold">{accountDialog.title}</h2>
+              <button type="button" aria-label="Đóng hộp thoại" onClick={() => dialogRef.current?.close()} className="grid size-8 shrink-0 place-items-center rounded-full hover:bg-[#E8F1DD]"><X size={18} aria-hidden="true" /></button>
+            </div>
+            {accountDialog.edit ? (
+              <form onSubmit={saveName} className="mt-4 space-y-3">
+                <label className="block text-sm font-semibold">Họ và tên
+                  <input name="full_name" defaultValue={typeof name === "string" ? name : ""} maxLength={100} required className="bloomie-field mt-2" />
+                </label>
+                {nameError && <p role="alert" className="text-sm text-[#B42318]">{nameError}</p>}
+                <button type="submit" disabled={savingName} className="acct-btn acct-primary w-full disabled:opacity-60">{savingName ? "Đang lưu…" : "Lưu thay đổi"}</button>
+              </form>
+            ) : <p className="mt-3 text-sm leading-6 text-[#4A5568]">{accountDialog.description}</p>}
+          </>
+        )}
+      </dialog>
+    </main>
   );
 }
