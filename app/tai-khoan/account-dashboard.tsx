@@ -15,6 +15,15 @@ import "../home.css";
 import "./account-dashboard.css";
 
 const ordersPerPage = 5;
+const orderFilters = [
+  { value: "all", label: "Tất cả" },
+  { value: "paid", label: "Đã thanh toán" },
+  { value: "pending_payment", label: "Chờ thanh toán" },
+  { value: "cancelled", label: "Đã hủy" },
+] as const;
+type OrderFilter = (typeof orderFilters)[number]["value"];
+type ShippingDetails = Pick<Order, "recipient_name" | "recipient_phone" | "shipping_address">;
+
 const creator = {
   title: "Chương trình Bloomie Creator",
   description: "Đăng ký hợp tác hoặc xem tiến độ xét duyệt hồ sơ Creator của bạn.",
@@ -28,6 +37,8 @@ type OrderResult = {
   pending: number | null;
   failed: boolean;
   page: number;
+  filter: OrderFilter;
+  latestAddress: ShippingDetails | null;
 };
 
 export default function AccountDashboard({
@@ -48,6 +59,8 @@ export default function AccountDashboard({
   const { cart, ownerId, ready, storageUnavailable } = useCart();
   const userId = user?.id;
   const [orderPage, setOrderPage] = useState(0);
+  const [orderFilter, setOrderFilter] = useState<OrderFilter>("all");
+  const [ordersRevision, setOrdersRevision] = useState(0);
   const [allOrders, setAllOrders] = useState(false);
   const [notice, setNotice] = useState("");
   const [dialog, setDialog] = useState<Dialog | null>(null);
@@ -82,20 +95,34 @@ export default function AccountDashboard({
 
     async function loadOrders() {
       try {
-        const [recent, pending] = await Promise.all([
-          supabase!.from("orders")
-            .select(
-              "id,created_at,status,total_vnd,recipient_name,recipient_phone,shipping_address,order_items(product_id,product_name,quantity)",
-              { count: "exact" },
-            )
-            .eq("user_id", userId!)
-            .order("created_at", { ascending: false })
+        const orders = supabase!.from("orders")
+          .select(
+            "id,created_at,status,total_vnd,recipient_name,recipient_phone,shipping_address,order_items(product_id,product_name,quantity)",
+            { count: "exact" },
+          )
+          .eq("user_id", userId!);
+        if (orderFilter === "paid") {
+          orders.in("status", ["paid", "paid_simulated"]);
+        } else if (orderFilter !== "all") {
+          orders.eq("status", orderFilter);
+        }
+
+        const useFirstOrderAddress = orderPage === 0 && orderFilter === "all";
+        const [recent, pending, address] = await Promise.all([
+          orders.order("created_at", { ascending: false })
             .order("id", { ascending: false })
             .range(offset, offset + ordersPerPage - 1),
           supabase!.from("orders")
             .select("id", { count: "exact", head: true })
             .eq("user_id", userId!)
             .eq("status", "pending_payment"),
+          useFirstOrderAddress ? null : supabase!.from("orders")
+            .select("recipient_name,recipient_phone,shipping_address")
+            .eq("user_id", userId!)
+            .order("created_at", { ascending: false })
+            .order("id", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
         ]);
 
         if (!active) return;
@@ -108,6 +135,8 @@ export default function AccountDashboard({
           pending: pending.error ? null : pending.count,
           failed: false,
           page: orderPage,
+          filter: orderFilter,
+          latestAddress: useFirstOrderAddress ? recent.data?.[0] ?? null : address?.data ?? null,
         });
       } catch {
         if (active) {
@@ -118,6 +147,8 @@ export default function AccountDashboard({
             pending: null,
             failed: true,
             page: orderPage,
+            filter: orderFilter,
+            latestAddress: null,
           });
         }
       }
@@ -125,7 +156,7 @@ export default function AccountDashboard({
 
     void loadOrders();
     return () => { active = false; };
-  }, [supabase, userId, orderPage]);
+  }, [supabase, userId, orderPage, orderFilter, ordersRevision]);
 
   async function signOut() {
     if (!supabase || signingOut) return;
@@ -137,6 +168,7 @@ export default function AccountDashboard({
       if (error) throw error;
       setResult(null);
       setOrderPage(0);
+      setOrderFilter("all");
       setAllOrders(false);
       setNotice("");
       setDialog(null);
@@ -166,8 +198,8 @@ export default function AccountDashboard({
     user.email?.split("@")[0] ||
     "bạn";
 
-  const accountOrders = result?.userId === user.id && result.page === orderPage ? result : null;
-  const latestOrder = orderPage === 0 ? accountOrders?.orders[0] : null;
+  const accountOrders = result?.userId === user.id && result.page === orderPage && result.filter === orderFilter ? result : null;
+  const latestAddress = accountOrders?.latestAddress;
   const cartCount = ready && !storageUnavailable && ownerId === user.id
     ? Object.values(cart).reduce((sum, quantity) => sum + quantity, 0)
     : null;
@@ -232,15 +264,10 @@ export default function AccountDashboard({
         return;
       }
 
-      setResult((value) => {
-        if (value?.userId !== activeUserId) return value;
-        if (!value.orders.some((order) => order.id === id && order.status === "pending_payment")) return value;
-        return {
-          ...value,
-          pending: value.pending === null ? null : Math.max(0, value.pending - 1),
-          orders: value.orders.map((order) => order.id === id ? { ...order, status: "cancelled" } : order),
-        };
-      });
+      if (orderFilter === "pending_payment" && accountOrders?.orders.length === 1) {
+        setOrderPage((page) => Math.max(0, page - 1));
+      }
+      setOrdersRevision((revision) => revision + 1);
       setNotice("Đã hủy đơn hàng.");
       setDialog((value) => value?.userId === activeUserId && value.orderId === id ? null : value);
     } catch {
@@ -309,18 +336,37 @@ export default function AccountDashboard({
                 <button type="button" className="acct-btn acct-light" onClick={() => {
                   setAllOrders(!allOrders);
                   setOrderPage(0);
+                  setOrderFilter("all");
                 }}>
                   {allOrders ? "Xem đơn gần đây" : `Xem tất cả đơn hàng${total === null ? "" : ` (${total})`} →`}
                 </button>
               </header>
+              <div role="group" aria-label="Lọc theo trạng thái đơn hàng" className="mb-4 flex flex-wrap gap-2">
+                {orderFilters.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={orderFilter === value}
+                    className={`acct-btn ${orderFilter === value ? "acct-primary" : "acct-light"}`}
+                    onClick={() => {
+                      setOrderFilter(value);
+                      setOrderPage(0);
+                      setNotice("");
+                      if (value !== "all") setAllOrders(true);
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <p role="status" className="wrap-break-word text-sm text-[#245C45] not-empty:mb-3">{notice}</p>
               {message && <p role="alert" className="mb-3 text-sm text-[#B42318]">{message}</p>}
               {!accountOrders && <p role="status">Đang tải đơn hàng…</p>}
               {accountOrders?.failed && <p role="alert" className="acct-card bg-white p-5">Chưa tải được đơn hàng. Hãy tải lại trang.</p>}
               {accountOrders && !accountOrders.failed && accountOrders.orders.length === 0 && (
                 <div className="acct-card bg-white p-5">
-                  <p>Chưa có đơn hàng để hiển thị.</p>
-                  <Link href="/san-pham" className="acct-btn acct-primary mt-3">Khám phá sản phẩm</Link>
+                  <p>{orderFilter === "all" ? "Chưa có đơn hàng để hiển thị." : "Không có đơn hàng ở trạng thái này."}</p>
+                  {orderFilter === "all" && <Link href="/san-pham" className="acct-btn acct-primary mt-3">Khám phá sản phẩm</Link>}
                 </div>
               )}
               <div className="grid gap-4">
@@ -336,11 +382,11 @@ export default function AccountDashboard({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <AddressCard
-                address={latestOrder ? {
-                  recipient: `${latestOrder.recipient_name} ${latestOrder.recipient_phone}`,
-                  street: latestOrder.shipping_address,
+                address={latestAddress ? {
+                  recipient: `${latestAddress.recipient_name} ${latestAddress.recipient_phone}`,
+                  street: latestAddress.shipping_address,
                 } : undefined}
-                emptyText={orderPage > 0 ? "Xem đơn gần đây để kiểm tra địa chỉ giao mới nhất." : accountOrders?.failed ? "Chưa tải được địa chỉ." : accountOrders ? "Chưa có địa chỉ từ đơn hàng." : "Đang tải địa chỉ…"}
+                emptyText={accountOrders?.failed ? "Chưa tải được địa chỉ." : accountOrders ? "Chưa có địa chỉ từ đơn hàng." : "Đang tải địa chỉ…"}
               />
               <CreatorCard creator={creator} />
             </div>
