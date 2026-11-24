@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
-import { changeCartQuantity, useCart } from "../lib/cart";
+import { getCartOwnerId, useCart } from "../lib/cart";
 import type { Product } from "../lib/products";
 import { createClient, hasSupabaseConfig } from "../lib/supabase-browser";
 
@@ -12,7 +12,8 @@ const money = new Intl.NumberFormat("vi-VN", {
 });
 
 export default function CheckoutForm({ products }: { products: Product[] }) {
-  const { cart, ready, storageUnavailable } = useCart();
+  const { cart, ownerId, ready, storageUnavailable, changeCartQuantity } =
+    useCart();
   const submitting = useRef(false);
   const request = useRef<{ key: string; id: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -69,7 +70,14 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
         setMessage("Bạn cần đăng nhập để đặt hàng.");
         return;
       }
+      if (user.id !== ownerId || getCartOwnerId() !== ownerId) {
+        setMessage(
+          "Tài khoản vừa thay đổi. Hãy kiểm tra lại giỏ hàng trước khi đặt.",
+        );
+        return;
+      }
 
+      const key = JSON.stringify([user.id, payload]);
       const key = JSON.stringify([user.id, payload]);
       if (request.current?.key !== key) {
         request.current = { key, id: crypto.randomUUID() };
@@ -163,7 +171,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
     );
   }
 
-    return (
+  return (
     <form
       onSubmit={submit}
       className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
@@ -173,7 +181,10 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
         className="min-w-0 space-y-6 rounded-[28px] border border-[#e2eadc] bg-white p-5 shadow-sm sm:p-7"
       >
         <section className="space-y-4" aria-labelledby="recipient-title">
-          <h2 id="recipient-title" className="flex items-center gap-3 text-lg font-bold">
+          <h2
+            id="recipient-title"
+            className="flex items-center gap-3 text-lg font-bold"
+          >
             <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#e8f1dd] text-sm text-[#245c45]">
               1
             </span>
@@ -207,8 +218,14 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
           </label>
         </section>
 
-        <section className="space-y-4 border-t border-[#e2eadc] pt-6" aria-labelledby="address-title">
-          <h2 id="address-title" className="flex items-center gap-3 text-lg font-bold">
+        <section
+          className="space-y-4 border-t border-[#e2eadc] pt-6"
+          aria-labelledby="address-title"
+        >
+          <h2
+            id="address-title"
+            className="flex items-center gap-3 text-lg font-bold"
+          >
             <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#e8f1dd] text-sm text-[#245c45]">
               2
             </span>
@@ -229,8 +246,14 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
           </label>
         </section>
 
-        <section className="space-y-4 border-t border-[#e2eadc] pt-6" aria-labelledby="payment-title">
-          <h2 id="payment-title" className="flex items-center gap-3 text-lg font-bold">
+        <section
+          className="space-y-4 border-t border-[#e2eadc] pt-6"
+          aria-labelledby="payment-title"
+        >
+          <h2
+            id="payment-title"
+            className="flex items-center gap-3 text-lg font-bold"
+          >
             <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#e8f1dd] text-sm text-[#245c45]">
               3
             </span>
@@ -273,7 +296,9 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="wrap-break-word text-sm font-semibold">{item.name}</p>
+                <p className="wrap-break-word text-sm font-semibold">
+                  {item.name}
+                </p>
                 <p className="mt-1 text-xs text-[#52645a]">
                   Số lượng: {cart[item.id]}
                 </p>
@@ -292,15 +317,25 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2 font-bold">
             <dt>Tổng thanh toán</dt>
-            <dd className="text-2xl text-[#245c45]">{money.format(subtotal)}</dd>
+            <dd className="text-2xl text-[#245c45]">
+              {money.format(subtotal)}
+            </dd>
           </div>
         </dl>
 
-        <button type="submit" disabled={busy} className="bloomie-button mt-6 w-full">
+        <button
+          type="submit"
+          disabled={busy}
+          className="bloomie-button mt-6 w-full"
+        >
           {busy ? "Đang tạo đơn…" : "Xác nhận đặt hàng"}
         </button>
 
-        {message && <p role="status" className="mt-3 text-sm">{message}</p>}
+        {message && (
+          <p role="status" className="mt-3 text-sm">
+            {message}
+          </p>
+        )}
         {needsLogin && (
           <p className="mt-2 text-sm">
             <Link href="/dang-nhap" className="font-semibold underline">

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { cartQuantityLimit, changeCartQuantity, useCart } from "../lib/cart";
+import { cartQuantityLimit, useCart } from "../lib/cart";
 import type { Product } from "../lib/products";
 import AddToCart from "./add-to-cart";
 import { Icon } from "./bloomie-icon";
@@ -174,7 +174,7 @@ function Catalog({ products }: { products: Product[] }) {
 }
 
 function CartContents({ products }: { products: Product[] }) {
-  const { cart, ready, storageUnavailable } = useCart();
+  const { cart, ready, storageUnavailable, changeCartQuantity } = useCart();
   const [message, setMessage] = useState("");
   const items = products.filter(({ id }) => cart[id] > 0);
   const count = items.reduce((total, { id }) => total + cart[id], 0);

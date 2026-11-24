@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { cartQuantityLimit, changeCartQuantity } from "../lib/cart";
+import { cartQuantityLimit, useCart } from "../lib/cart";
 import { Icon } from "./bloomie-icon";
 
 export default function AddToCart({
@@ -14,6 +14,7 @@ export default function AddToCart({
   compact?: boolean;
   showQuantity?: boolean;
 }) {
+  const { changeCartQuantity, ready } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
 
@@ -69,6 +70,7 @@ export default function AddToCart({
       <button
         type="button"
         onClick={add}
+        disabled={!ready}
         className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#245c45] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1c4b38]"
       >
         <Icon name="bag" className="size-4" />
