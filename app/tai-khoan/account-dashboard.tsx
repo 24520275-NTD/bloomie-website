@@ -309,6 +309,11 @@ export default function AccountDashboard({
     <main className="bloomie-account min-h-screen bg-[#FFFDF8] text-[#1F3D33]">
       <div className="mx-auto max-w-[1200px] px-4 pt-4 pb-16 sm:px-6">
         <header>
+          <div className="mb-4">
+            <Link href="/" className="acct-btn acct-light">
+              <span aria-hidden="true">←</span> Trang chủ
+            </Link>
+          </div>
           <p className="acct-tag bg-[#E8F1DD] text-[#245C45]"><span aria-hidden="true">●</span> TÀI KHOẢN CỦA TÔI</p>
           <h1 className="acct-heading mt-2 wrap-break-word text-[34px] leading-[1.1] font-extrabold tracking-tight sm:text-[48px]">Xin chào, {displayName}</h1>
           <p className="mt-2 text-sm leading-6 text-[#4A5568]">Quản lý đơn hàng, danh sách yêu thích và thông tin cá nhân của bạn tại Bloomie.</p>
