@@ -7,9 +7,6 @@ export type Order = {
   created_at: string;
   status: string;
   total_vnd: number;
-  recipient_name: string;
-  recipient_phone: string;
-  shipping_address: string;
   order_items: { product_id: string; product_name: string; quantity: number }[];
 };
 

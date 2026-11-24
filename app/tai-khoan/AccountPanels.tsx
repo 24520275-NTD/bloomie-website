@@ -112,23 +112,26 @@ export function StatCard({ stat }: { stat: { label: string; value: number | stri
   );
 }
 
-export function AddressCard({ address, emptyText }: {
+export function AddressCard({ address, onEdit }: {
   address?: { recipient: string; street: string };
-  emptyText: string;
+  onEdit: () => void;
 }) {
   return (
     <section id="dia-chi" className="acct-card scroll-mt-6 bg-white p-5 sm:p-6">
       <header className="flex flex-wrap items-center gap-2">
         <span className="acct-icon bg-[#E8F1DD] text-[#245C45]"><MapPin size={17} aria-hidden="true" /></span>
-        <h2 className="acct-heading flex-1 text-base leading-5 font-bold">Địa chỉ giao gần nhất</h2>
-        {address && <span className="acct-tag bg-[#E8F1DD] text-[#245C45]">Gần nhất</span>}
+        <h2 className="acct-heading flex-1 text-base leading-5 font-bold">Địa chỉ giao mặc định</h2>
+        {address && <span className="acct-tag bg-[#E8F1DD] text-[#245C45]">Mặc định</span>}
       </header>
       {address ? <address className="mt-4 text-sm leading-6 not-italic">
         <p className="font-semibold">{address.recipient}</p>
         <p className="mt-1 text-[#4A5568]">{address.street}</p>
-      </address> : <p className="mt-4 text-sm leading-6 text-[#4A5568]">{emptyText}</p>}
+      </address> : <p className="mt-4 text-sm leading-6 text-[#4A5568]">Bạn chưa lưu địa chỉ giao hàng mặc định.</p>}
       <div className="mt-4 border-t border-[#E7EDE2] pt-3">
-        <Link href="/dat-hang" className="acct-btn text-[#245C45] hover:bg-[#F1F6EC]">Nhập địa chỉ khi đặt hàng <ChevronRight size={15} aria-hidden="true" /></Link>
+        <button type="button" onClick={onEdit} className="acct-btn text-[#245C45] hover:bg-[#F1F6EC]">
+          {address ? "Thay đổi địa chỉ giao hàng" : "Thêm địa chỉ giao hàng"}
+          <ChevronRight size={15} aria-hidden="true" />
+        </button>
       </div>
     </section>
   );

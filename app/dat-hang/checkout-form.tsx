@@ -1,9 +1,10 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { getCartOwnerId, useCart } from "../lib/cart";
 import type { Product } from "../lib/products";
+import { defaultShippingAddressKey, parseShippingAddress } from "../lib/shipping-address";
 import { createClient, hasSupabaseConfig } from "../lib/supabase-browser";
 
 const money = new Intl.NumberFormat("vi-VN", {
@@ -15,6 +16,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
   const { cart, ownerId, ready, storageUnavailable, changeCartQuantity, removePurchasedItems } =
     useCart();
   const submitting = useRef(false);
+  const checkoutFormRef = useRef<HTMLFormElement>(null);
   const request = useRef<{ key: string; id: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -30,6 +32,36 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
     (sum, item) => sum + (item.price_vnd ?? 0) * cart[item.id],
     0,
   );
+  const hasCheckoutForm = ready && !storageUnavailable && missingIds.length === 0
+    && items.length > 0 && !hasMissingPrice && createdOrder?.ownerId !== ownerId;
+
+  useEffect(() => {
+    const form = checkoutFormRef.current;
+    if (!hasCheckoutForm || !hasSupabaseConfig || !ownerId || !form) return;
+    let active = true;
+
+    async function loadDefaultAddress() {
+      try {
+        const { data, error } = await createClient().auth.getUser();
+        if (!active || error || data.user?.id !== ownerId || getCartOwnerId() !== ownerId) return;
+        const defaults = parseShippingAddress(data.user.user_metadata[defaultShippingAddressKey]);
+        if (!defaults || !form) return;
+
+        for (const [name, value] of Object.entries(defaults)) {
+          const field = form.elements.namedItem(name);
+          if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+            // Setting the default preserves any value the customer has already edited.
+            field.defaultValue = value;
+          }
+        }
+      } catch {
+        // The customer can still enter the address manually.
+      }
+    }
+
+    void loadDefaultAddress();
+    return () => { active = false; };
+  }, [hasCheckoutForm, ownerId]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -179,6 +211,8 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
 
   return (
     <form
+      key={ownerId}
+      ref={checkoutFormRef}
       onSubmit={submit}
       className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
     >

@@ -7,6 +7,7 @@ import type { User } from "@supabase/supabase-js";
 import AccountForm from "../components/account-form";
 import Storefront from "../components/storefront";
 import { useCart } from "../lib/cart";
+import { defaultShippingAddressKey, parseShippingAddress } from "../lib/shipping-address";
 import { createClient, hasSupabaseConfig } from "../lib/supabase-browser";
 
 import { AccountSidebar, AddressCard, CreatorCard, StatCard, type MenuItemData } from "./AccountPanels";
@@ -22,13 +23,12 @@ const orderFilters = [
   { value: "cancelled", label: "Đã hủy" },
 ] as const;
 type OrderFilter = (typeof orderFilters)[number]["value"];
-type ShippingDetails = Pick<Order, "recipient_name" | "recipient_phone" | "shipping_address">;
 
 const creator = {
   title: "Chương trình Bloomie Creator",
   description: "Đăng ký hợp tác hoặc xem tiến độ xét duyệt hồ sơ Creator của bạn.",
 };
-type Dialog = { title: string; description?: string; edit?: boolean; orderId?: string; userId: string };
+type Dialog = { title: string; description?: string; edit?: "name" | "address"; orderId?: string; userId: string };
 
 type OrderResult = {
   userId: string;
@@ -38,7 +38,6 @@ type OrderResult = {
   failed: boolean;
   page: number;
   filter: OrderFilter;
-  latestAddress: ShippingDetails | null;
 };
 
 export default function AccountDashboard({
@@ -61,11 +60,10 @@ export default function AccountDashboard({
   const [orderPage, setOrderPage] = useState(0);
   const [orderFilter, setOrderFilter] = useState<OrderFilter>("all");
   const [ordersRevision, setOrdersRevision] = useState(0);
-  const [allOrders, setAllOrders] = useState(false);
   const [notice, setNotice] = useState("");
   const [dialog, setDialog] = useState<Dialog | null>(null);
-  const [savingName, setSavingName] = useState(false);
-  const [nameError, setNameError] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState("");
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState("");
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -97,7 +95,7 @@ export default function AccountDashboard({
       try {
         const orders = supabase!.from("orders")
           .select(
-            "id,created_at,status,total_vnd,recipient_name,recipient_phone,shipping_address,order_items(product_id,product_name,quantity)",
+            "id,created_at,status,total_vnd,order_items(product_id,product_name,quantity)",
             { count: "exact" },
           )
           .eq("user_id", userId!);
@@ -107,8 +105,7 @@ export default function AccountDashboard({
           orders.eq("status", orderFilter);
         }
 
-        const useFirstOrderAddress = orderPage === 0 && orderFilter === "all";
-        const [recent, pending, address] = await Promise.all([
+        const [recent, pending] = await Promise.all([
           orders.order("created_at", { ascending: false })
             .order("id", { ascending: false })
             .range(offset, offset + ordersPerPage - 1),
@@ -116,13 +113,6 @@ export default function AccountDashboard({
             .select("id", { count: "exact", head: true })
             .eq("user_id", userId!)
             .eq("status", "pending_payment"),
-          useFirstOrderAddress ? null : supabase!.from("orders")
-            .select("recipient_name,recipient_phone,shipping_address")
-            .eq("user_id", userId!)
-            .order("created_at", { ascending: false })
-            .order("id", { ascending: false })
-            .limit(1)
-            .maybeSingle(),
         ]);
 
         if (!active) return;
@@ -136,7 +126,6 @@ export default function AccountDashboard({
           failed: false,
           page: orderPage,
           filter: orderFilter,
-          latestAddress: useFirstOrderAddress ? recent.data?.[0] ?? null : address?.data ?? null,
         });
       } catch {
         if (active) {
@@ -148,7 +137,6 @@ export default function AccountDashboard({
             failed: true,
             page: orderPage,
             filter: orderFilter,
-            latestAddress: null,
           });
         }
       }
@@ -169,7 +157,6 @@ export default function AccountDashboard({
       setResult(null);
       setOrderPage(0);
       setOrderFilter("all");
-      setAllOrders(false);
       setNotice("");
       setDialog(null);
       setUser(null);
@@ -199,7 +186,7 @@ export default function AccountDashboard({
     "bạn";
 
   const accountOrders = result?.userId === user.id && result.page === orderPage && result.filter === orderFilter ? result : null;
-  const latestAddress = accountOrders?.latestAddress;
+  const defaultAddress = parseShippingAddress(user.user_metadata[defaultShippingAddressKey]);
   const cartCount = ready && !storageUnavailable && ownerId === user.id
     ? Object.values(cart).reduce((sum, quantity) => sum + quantity, 0)
     : null;
@@ -277,28 +264,36 @@ export default function AccountDashboard({
     }
   }
 
-  async function saveName(event: FormEvent<HTMLFormElement>) {
+  async function saveProfile(event: FormEvent<HTMLFormElement>, edit: "name" | "address") {
     event.preventDefault();
-    if (!supabase || savingName) return;
-    const fullName = String(new FormData(event.currentTarget).get("full_name") ?? "").trim();
-    if (!fullName) {
-      setNameError("Vui lòng nhập họ và tên.");
+    if (!supabase || savingProfile) return;
+    const fields = new FormData(event.currentTarget);
+    const fullName = String(fields.get("full_name") ?? "").trim();
+    const address = parseShippingAddress(Object.fromEntries(fields));
+    if (edit === "address" && !address) {
+      setProfileError("Kiểm tra tên người nhận, số điện thoại và địa chỉ giao hàng.");
+      return;
+    }
+    if (edit === "name" && !fullName) {
+      setProfileError("Vui lòng nhập họ và tên.");
       return;
     }
 
-    setSavingName(true);
-    setNameError("");
+    setSavingProfile(true);
+    setProfileError("");
     try {
       const { data: current, error: sessionError } = await supabase.auth.getUser();
       if (sessionError || current.user?.id !== activeUserId) throw Error("Phiên đăng nhập đã thay đổi.");
-      const { data, error } = await supabase.auth.updateUser({ data: { full_name: fullName } });
+      const { data, error } = await supabase.auth.updateUser({
+        data: edit === "address" ? { [defaultShippingAddressKey]: address } : { full_name: fullName },
+      });
       if (error || !data.user) throw error ?? Error("Chưa nhận được hồ sơ.");
       setUser((value) => value?.id === data.user.id ? data.user : value);
-      dialogRef.current?.close();
+      setDialog((value) => value?.userId === activeUserId && value.edit === edit ? null : value);
     } catch {
-      setNameError("Chưa lưu được tên. Bạn thử lại nhé.");
+      setProfileError(edit === "address" ? "Chưa lưu được địa chỉ. Bạn thử lại nhé." : "Chưa lưu được tên. Bạn thử lại nhé.");
     } finally {
-      setSavingName(false);
+      setSavingProfile(false);
     }
   }
 
@@ -318,8 +313,8 @@ export default function AccountDashboard({
             pending={pending}
             onNotice={openNotice}
             onEdit={() => {
-              setNameError("");
-              setDialog({ title: "Chỉnh sửa hồ sơ", edit: true, userId: activeUserId });
+              setProfileError("");
+              setDialog({ title: "Chỉnh sửa hồ sơ", edit: "name", userId: activeUserId });
             }}
             onSignOut={signOut}
             signingOut={signingOut}
@@ -332,21 +327,18 @@ export default function AccountDashboard({
 
             <section id="don-hang" aria-labelledby="account-orders-title" className="scroll-mt-6">
               <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <h2 id="account-orders-title" className="acct-heading text-[28px] leading-tight font-bold">{allOrders ? "Tất cả đơn hàng" : "Đơn hàng gần đây"}</h2>
+                <h2 id="account-orders-title" className="acct-heading text-[28px] leading-tight font-bold">Đơn hàng của bạn</h2>
                 <div className="relative">
                   <select
                     aria-label="Chọn danh sách đơn hàng"
-                    value={allOrders ? orderFilter : "recent"}
+                    value={orderFilter}
                     className="acct-btn acct-light cursor-pointer appearance-none pr-9 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245C45]"
                     onChange={(event) => {
-                      const value = event.currentTarget.value as OrderFilter | "recent";
-                      setAllOrders(value !== "recent");
-                      setOrderFilter(value === "recent" ? "all" : value);
+                      setOrderFilter(event.currentTarget.value as OrderFilter);
                       setOrderPage(0);
                       setNotice("");
                     }}
                   >
-                    <option value="recent">Xem đơn gần đây</option>
                     {orderFilters.map(({ value, label }) => (
                       <option key={value} value={value}>{label}</option>
                     ))}
@@ -367,7 +359,7 @@ export default function AccountDashboard({
               <div className="grid gap-4">
                 {accountOrders?.orders.map((order) => <OrderCard key={order.id} order={order} productImages={productImages} onCopy={copyOrder} onCancel={confirmCancellation} />)}
               </div>
-              {allOrders && total !== null && total > ordersPerPage && (
+              {total !== null && total > ordersPerPage && (
                 <nav aria-label="Các trang đơn hàng" className="mt-4 flex flex-wrap gap-2">
                   <button type="button" className="acct-btn acct-light disabled:opacity-60" disabled={orderPage === 0} onClick={() => setOrderPage(orderPage - 1)}>Trang trước</button>
                   <button type="button" className="acct-btn acct-light disabled:opacity-60" disabled={(orderPage + 1) * ordersPerPage >= total} onClick={() => setOrderPage(orderPage + 1)}>Trang sau</button>
@@ -377,11 +369,14 @@ export default function AccountDashboard({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <AddressCard
-                address={latestAddress ? {
-                  recipient: `${latestAddress.recipient_name} ${latestAddress.recipient_phone}`,
-                  street: latestAddress.shipping_address,
+                address={defaultAddress ? {
+                  recipient: `${defaultAddress.name} · ${defaultAddress.phone}`,
+                  street: defaultAddress.address,
                 } : undefined}
-                emptyText={accountOrders?.failed ? "Chưa tải được địa chỉ." : accountOrders ? "Chưa có địa chỉ từ đơn hàng." : "Đang tải địa chỉ…"}
+                onEdit={() => {
+                  setProfileError("");
+                  setDialog({ title: "Địa chỉ giao mặc định", edit: "address", userId: activeUserId });
+                }}
               />
               <CreatorCard creator={creator} />
             </div>
@@ -397,12 +392,28 @@ export default function AccountDashboard({
               <button type="button" aria-label="Đóng hộp thoại" onClick={() => dialogRef.current?.close()} className="grid size-8 shrink-0 place-items-center rounded-full hover:bg-[#E8F1DD]"><X size={18} aria-hidden="true" /></button>
             </div>
             {accountDialog.edit ? (
-              <form onSubmit={saveName} className="mt-4 space-y-3">
-                <label className="block text-sm font-semibold">Họ và tên
-                  <input name="full_name" defaultValue={typeof name === "string" ? name : ""} maxLength={100} required className="bloomie-field mt-2" />
-                </label>
-                {nameError && <p role="alert" className="text-sm text-[#B42318]">{nameError}</p>}
-                <button type="submit" disabled={savingName} className="acct-btn acct-primary w-full disabled:opacity-60">{savingName ? "Đang lưu…" : "Lưu thay đổi"}</button>
+              <form onSubmit={(event) => void saveProfile(event, accountDialog.edit!)} className="mt-4 space-y-3">
+                <fieldset disabled={savingProfile} className="space-y-3">
+                  {accountDialog.edit === "address" ? (
+                    <>
+                      <label className="block text-sm font-semibold">Tên người nhận
+                        <input name="name" autoComplete="shipping name" defaultValue={defaultAddress?.name ?? (typeof name === "string" ? name : "")} maxLength={120} required className="bloomie-field mt-2" />
+                      </label>
+                      <label className="block text-sm font-semibold">Số điện thoại
+                        <input name="phone" type="tel" autoComplete="shipping tel" defaultValue={defaultAddress?.phone} minLength={8} maxLength={25} required className="bloomie-field mt-2" />
+                      </label>
+                      <label className="block text-sm font-semibold">Địa chỉ giao hàng
+                        <textarea name="address" autoComplete="shipping street-address" defaultValue={defaultAddress?.address} maxLength={500} rows={3} required className="bloomie-field mt-2 py-3" />
+                      </label>
+                    </>
+                  ) : (
+                    <label className="block text-sm font-semibold">Họ và tên
+                      <input name="full_name" defaultValue={typeof name === "string" ? name : ""} maxLength={100} required className="bloomie-field mt-2" />
+                    </label>
+                  )}
+                  {profileError && <p role="alert" className="text-sm text-[#B42318]">{profileError}</p>}
+                  <button type="submit" className="acct-btn acct-primary w-full disabled:opacity-60">{savingProfile ? "Đang lưu…" : "Lưu thay đổi"}</button>
+                </fieldset>
               </form>
             ) : (
               <div className="mt-3 space-y-3 text-sm leading-6 text-[#4A5568]">
