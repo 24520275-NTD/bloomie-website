@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { changeCartQuantity, useCart } from "../lib/cart";
@@ -163,56 +163,153 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
     );
   }
 
-  return (
-    <form className="mt-6 space-y-4" onSubmit={submit}>
-      <p className="font-semibold">Tạm tính {money.format(subtotal)}</p>
-      <fieldset disabled={busy} className="space-y-4">
-        <label className="block">
-          Tên người nhận
-          <input
-            name="name"
-            autoComplete="name"
-            required
-            maxLength={120}
-            className="bloomie-field mt-1"
-          />
-        </label>
-        <label className="block">
-          Số điện thoại
-          <input
-            name="phone"
-            type="tel"
-            autoComplete="tel"
-            required
-            minLength={8}
-            maxLength={25}
-            className="bloomie-field mt-1"
-          />
-        </label>
-        <label className="block">
-          Địa chỉ giao hàng
-          <textarea
-            name="address"
-            autoComplete="street-address"
-            required
-            maxLength={500}
-            rows={3}
-            className="bloomie-field mt-1 py-2"
-          />
-        </label>
+    return (
+    <form
+      onSubmit={submit}
+      className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
+    >
+      <fieldset
+        disabled={busy}
+        className="min-w-0 space-y-6 rounded-[28px] border border-[#e2eadc] bg-white p-5 shadow-sm sm:p-7"
+      >
+        <section className="space-y-4" aria-labelledby="recipient-title">
+          <h2 id="recipient-title" className="flex items-center gap-3 text-lg font-bold">
+            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#e8f1dd] text-sm text-[#245c45]">
+              1
+            </span>
+            Thông tin người nhận
+          </h2>
+
+          <label className="block text-sm font-semibold">
+            Tên người nhận
+            <input
+              name="name"
+              autoComplete="name"
+              required
+              maxLength={120}
+              placeholder="Ví dụ: Nguyễn Văn An"
+              className="bloomie-field mt-2 font-normal"
+            />
+          </label>
+
+          <label className="block text-sm font-semibold">
+            Số điện thoại
+            <input
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              required
+              minLength={8}
+              maxLength={25}
+              placeholder="Nhập số điện thoại liên hệ"
+              className="bloomie-field mt-2 font-normal"
+            />
+          </label>
+        </section>
+
+        <section className="space-y-4 border-t border-[#e2eadc] pt-6" aria-labelledby="address-title">
+          <h2 id="address-title" className="flex items-center gap-3 text-lg font-bold">
+            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#e8f1dd] text-sm text-[#245c45]">
+              2
+            </span>
+            Địa chỉ nhận học liệu
+          </h2>
+
+          <label className="block text-sm font-semibold">
+            Địa chỉ giao hàng
+            <textarea
+              name="address"
+              autoComplete="street-address"
+              required
+              maxLength={500}
+              rows={3}
+              placeholder="Số nhà, tên đường, phường/xã và tỉnh/thành phố"
+              className="bloomie-field mt-2 py-3 font-normal"
+            />
+          </label>
+        </section>
+
+        <section className="space-y-4 border-t border-[#e2eadc] pt-6" aria-labelledby="payment-title">
+          <h2 id="payment-title" className="flex items-center gap-3 text-lg font-bold">
+            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#e8f1dd] text-sm text-[#245c45]">
+              3
+            </span>
+            Phương thức thanh toán
+          </h2>
+
+          <div className="rounded-2xl border border-[#88aa94] bg-[#f0f6eb] px-4 py-3">
+            <p className="font-bold text-[#245c45]">✓ Ví giả lập Bloomie</p>
+            <p className="mt-1 text-sm leading-6 text-[#52645a]">
+              Sau khi xác nhận đơn, bạn có thể thanh toán bằng số dư giả lập
+              trên trang chi tiết đơn hàng.
+            </p>
+          </div>
+        </section>
       </fieldset>
-      <button type="submit" disabled={busy} className="bloomie-button">
-        {busy ? "Đang tạo đơn…" : "Xác nhận đặt hàng"}
-      </button>
-      {message && <p role="status">{message}</p>}
-      {needsLogin && (
-        <p>
-          <Link href="/dang-nhap" className="underline">
-            Đăng nhập
-          </Link>
-          {" rồi quay lại trang Đặt hàng."}
-        </p>
-      )}
+
+      <section
+        aria-labelledby="order-summary-title"
+        className="min-w-0 rounded-[28px] border border-[#dce8d4] bg-[#e8f1dd] p-5 sm:p-6"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 id="order-summary-title" className="text-lg font-bold">
+            Đơn hàng của bạn
+          </h2>
+          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#245c45]">
+            {items.reduce((total, item) => total + cart[item.id], 0)} sản phẩm
+          </span>
+        </div>
+
+        <ul className="mt-4 divide-y divide-[#245c45]/10">
+          {items.map((item) => (
+            <li key={item.id} className="flex items-center gap-3 py-3">
+              <div className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-white">
+                <Image
+                  src={item.image}
+                  alt=""
+                  fill
+                  sizes="56px"
+                  className="object-contain p-1"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="wrap-break-word text-sm font-semibold">{item.name}</p>
+                <p className="mt-1 text-xs text-[#52645a]">
+                  Số lượng: {cart[item.id]}
+                </p>
+              </div>
+              <p className="shrink-0 text-sm font-semibold">
+                {money.format((item.price_vnd ?? 0) * cart[item.id])}
+              </p>
+            </li>
+          ))}
+        </ul>
+
+        <dl className="mt-4 space-y-3 border-t border-[#245c45]/15 pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+            <dt>Tạm tính</dt>
+            <dd>{money.format(subtotal)}</dd>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 font-bold">
+            <dt>Tổng thanh toán</dt>
+            <dd className="text-2xl text-[#245c45]">{money.format(subtotal)}</dd>
+          </div>
+        </dl>
+
+        <button type="submit" disabled={busy} className="bloomie-button mt-6 w-full">
+          {busy ? "Đang tạo đơn…" : "Xác nhận đặt hàng"}
+        </button>
+
+        {message && <p role="status" className="mt-3 text-sm">{message}</p>}
+        {needsLogin && (
+          <p className="mt-2 text-sm">
+            <Link href="/dang-nhap" className="font-semibold underline">
+              Đăng nhập
+            </Link>
+            {" rồi quay lại trang Đặt hàng."}
+          </p>
+        )}
+      </section>
     </form>
   );
 }
