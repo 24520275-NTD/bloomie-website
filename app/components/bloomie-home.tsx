@@ -11,6 +11,10 @@ import hero from "../../public/assets/bo-dung-cu-hoc-tap.png";
 
 const faqs = [
   [
+    "Học liệu Bloomie dành cho bé nào?",
+    "Bloomie dành cho trẻ gặp khó khăn trong phát triển trí tuệ. Ba mẹ có thể bắt đầu bằng một kỹ năng con đang cần hỗ trợ, như ghép cặp hình, gọi tên đồ vật hoặc cầm nắm và xoay, rồi cùng con thử theo nhịp phù hợp.",
+  ],
+  [
     "Xem thông tin từng bộ dụng cụ ở đâu?",
     "Mở trang Sản phẩm và chọn một bộ để xem hình ảnh, mô tả và thông tin giá hiện có.",
   ],
@@ -46,14 +50,14 @@ export default function BloomieHome({
         <section className="mx-auto grid max-w-[1200px] items-center gap-12 px-5 py-14 md:px-8 md:py-20 lg:grid-cols-[.95fr_1.05fr] lg:gap-18 lg:py-24">
           <div className="min-w-0 [container-type:inline-size]">
             <p className="mb-5 text-[13px] font-bold uppercase tracking-[.12em] text-[#1e7d3a]">
-              Cùng học hỏi, cùng lớn lên
+              Học liệu hỗ trợ phát triển
             </p>
-            <h1 className="max-w-[650px] font-display text-[length:min(68px,12cqi)] leading-[1.1] font-bold tracking-[-.045em] text-[#1f3d33]">
-              <span className="block whitespace-nowrap">Khơi mở tò mò.</span>
-              <span className="block whitespace-nowrap">
-                Nuôi lớn{" "}
+            <h1 className="max-w-[650px] font-display text-[length:clamp(32px,10cqi,60px)] leading-[1.1] font-bold tracking-[-.045em] text-[#1f3d33]">
+              Đồng hành cùng con{" "}
+              <span className="block">
+                qua{" "}
                 <span className="relative">
-                  ước mơ
+                  từng bước nhỏ
                   <span
                     aria-hidden="true"
                     className="absolute -bottom-1 left-0 h-2 w-full -rotate-1 rounded-full bg-[#f58220]/25"
@@ -63,21 +67,22 @@ export default function BloomieHome({
               </span>
             </h1>
             <p className="mt-7 max-w-[600px] text-[17px] leading-[1.75] text-[#4a5568] md:text-lg">
-              Những bộ dụng cụ học tập được tuyển chọn để mỗi giờ chơi là một
-              hành trình khám phá đầy hứng thú và ý nghĩa.
+              Bloomie dành cho trẻ gặp khó khăn trong phát triển trí tuệ.
+              Qua những hoạt động chơi cùng ba mẹ, con có thể luyện tư duy,
+              ngôn ngữ và vận động tinh theo nhịp của mình.
             </p>
             <a
               href="#san-pham"
               className="mt-8 inline-flex min-h-13 items-center gap-3 rounded-full bg-[#245c45] px-7 text-[15px] font-semibold text-white outline-none transition hover:bg-[#1c4b38] hover:shadow-[0_10px_24px_rgba(36,92,69,.18)] active:translate-y-px active:bg-[#163d2e] focus-visible:ring-3 focus-visible:ring-[#f58220]/60 focus-visible:ring-offset-3"
             >
-              Khám phá ngay{" "}
+              Xem học liệu{" "}
               <Icon
                 name="arrow"
                 className="size-5 transition-transform group-hover:translate-x-1"
               />
             </a>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-[#496259]">
-              {["Khám phá học liệu", "Học qua trải nghiệm"].map((item) => (
+              {["Chọn theo kỹ năng", "Cùng ba mẹ thực hành"].map((item) => (
                 <span key={item} className="flex items-center gap-2">
                   <span className="flex size-5 items-center justify-center rounded-full bg-[#e8f1dd] text-[#245c45]">
                     <Icon name="check" className="size-3.5" />
@@ -101,10 +106,10 @@ export default function BloomieHome({
             <div className="mt-6 flex items-end justify-between gap-4 px-1 sm:px-2">
               <div>
                 <p className="font-display text-xl font-bold tracking-[-.02em] sm:text-2xl">
-                  Mỗi ngày một khám phá
+                  Cùng con luyện từng kỹ năng
                 </p>
                 <p className="mt-1.5 text-sm leading-6 text-[#4a5568]">
-                  Chơi vui, học thật, lớn lên tự tin.
+                  Bắt đầu với một hoạt động vừa sức với con.
                 </p>
               </div>
               <div className="hidden gap-2 sm:flex">
@@ -136,23 +141,22 @@ export default function BloomieHome({
           <div className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
               <p className="mb-3 text-[13px] font-bold uppercase tracking-[.12em] text-[#1e7d3a]">
-                Chọn theo sở thích
+                Chọn theo kỹ năng
               </p>
               <h2 className="font-display text-[34px] leading-tight font-bold tracking-[-.035em] md:text-[40px]">
-                Bé muốn khám phá gì?
+                Con đang cần hỗ trợ kỹ năng nào?
               </h2>
             </div>
             <p className="max-w-md text-[16px] leading-7 text-[#4a5568]">
-              Từ những nét vẽ đầu tiên đến các thí nghiệm nhỏ, luôn có một bộ
-              phù hợp với trí tò mò của bé.
+              Ba mẹ có thể bắt đầu với việc ghép cặp, gọi tên đồ vật quen thuộc
+              hoặc luyện cầm nắm và phối hợp hai tay.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-3">
             {[
-              ["Sáng tạo mỹ thuật", "palette", "bg-[#f9ead8]"],
-              ["Đọc và kể chuyện", "book", "bg-[#e8f1dd]"],
-              ["Khám phá khoa học", "spark", "bg-[#e3eff0]"],
-              ["Luyện viết mỗi ngày", "pencil", "bg-[#f4e9e3]"],
+              ["Tư duy và logic", "spark", "bg-[#f9ead8]"],
+              ["Ngôn ngữ", "book", "bg-[#e8f1dd]"],
+              ["Vận động tinh", "pencil", "bg-[#e3eff0]"],
             ].map(([title, icon, color]) => (
               <a
                 href="#san-pham"
@@ -186,11 +190,11 @@ export default function BloomieHome({
                 Danh mục Bloomie
               </p>
               <h2 className="font-display text-[34px] leading-tight font-bold tracking-[-.035em] md:text-[40px]">
-                Bộ học tập nổi bật
+                Học liệu hỗ trợ phát triển
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-[16px] leading-7 text-[#4a5568]">
-                Trọn bộ dụng cụ và hướng dẫn hoạt động, sẵn sàng để bé bắt đầu
-                ngay khi mở hộp.
+                Xem từng bộ học liệu để chọn hoạt động phù hợp với kỹ năng
+                con đang luyện.
               </p>
             </div>
             {productError ? (
@@ -261,11 +265,11 @@ export default function BloomieHome({
                 Học bằng trải nghiệm
               </p>
               <h2 className="mt-4 max-w-sm font-display text-[34px] leading-[1.18] font-bold tracking-[-.035em] md:text-[40px]">
-                Không chỉ là dụng cụ học tập.
+                Mỗi bé có nhịp học riêng
               </h2>
               <p className="mt-5 max-w-md text-[16px] leading-7 text-white/75">
-                Đó là những khoảnh khắc cả nhà cùng làm, cùng hỏi và cùng vui
-                khi tìm ra câu trả lời.
+                Ba mẹ có thể làm mẫu, cho con thời gian thử và ghi nhận những
+                điều con làm được qua mỗi lần chơi cùng nhau.
               </p>
             </div>
             <div className="absolute bottom-8 right-8 flex size-24 items-center justify-center rounded-full bg-[#fffdf8] text-[#245c45] sm:bottom-10 sm:right-10 sm:size-28">
@@ -277,24 +281,24 @@ export default function BloomieHome({
               Vì sao chọn Bloomie
             </p>
             <h2 className="font-display text-[34px] leading-tight font-bold tracking-[-.035em] md:text-[40px]">
-              Để bé tự tin khám phá theo cách riêng
+              Cùng con thực hành tại nhà
             </h2>
             <div className="mt-8 divide-y divide-[#1f3d33]/10">
               {[
                 [
                   "shield",
-                  "Cùng bé khám phá",
-                  "Cùng chọn một hoạt động phù hợp với sở thích của bé.",
+                  "Bắt đầu từ việc con đã làm được",
+                  "Chọn hoạt động vừa sức rồi tăng dần độ khó khi con đã quen.",
                 ],
                 [
                   "spark",
-                  "Khơi gợi tư duy chủ động",
-                  "Hoạt động mở giúp bé quan sát, thử nghiệm và tự tìm ra cách giải quyết.",
+                  "Luyện kỹ năng qua trò chơi",
+                  "Ghép hai hình liên quan, gọi tên một đồ vật hoặc thử xoay một chiếc đai ốc.",
                 ],
                 [
                   "book",
-                  "Dễ dàng đồng hành cùng bé",
-                  "Ba mẹ có thể cùng bé quan sát, đặt câu hỏi và thử những cách làm mới.",
+                  "Cho con thời gian thử",
+                  "Ba mẹ có thể làm mẫu từng bước rồi để con thử lại khi sẵn sàng.",
                 ],
               ].map(([icon, title, text]) => (
                 <div
@@ -321,8 +325,8 @@ export default function BloomieHome({
             Cộng tác cùng Bloomie
           </h2>
           <p className="mx-auto mt-4 max-w-xl leading-7">
-            Bạn sáng tạo nội dung về học tập và trải nghiệm cho trẻ? Gửi hồ sơ
-            để Bloomie xem xét cơ hội hợp tác.
+            Bạn chia sẻ hoạt động học và chơi dành cho trẻ cần hỗ trợ phát triển?
+            Gửi hồ sơ để Bloomie xem xét cơ hội hợp tác.
           </p>
           <Link
             href="/creator/dang-ky"
@@ -344,8 +348,7 @@ export default function BloomieHome({
               Bạn đang băn khoăn?
             </h2>
             <p className="mt-4 text-[16px] leading-7 text-[#4a5568]">
-              Bloomie luôn sẵn lòng giúp bạn chọn món quà học tập phù hợp nhất
-              cho bé.
+              Tìm hiểu cách chọn học liệu phù hợp với kỹ năng con đang luyện.
             </p>
           </div>
           <div className="border-t border-[#1f3d33]/12">
@@ -387,7 +390,7 @@ export default function BloomieHome({
                 Sẵn sàng cùng bé bắt đầu?
               </p>
               <h2 className="mx-auto mt-4 max-w-2xl font-display text-[34px] leading-tight font-bold tracking-[-.035em] md:text-[44px]">
-                Mở hộp nhỏ, mở ra cả thế giới diệu kỳ.
+                Chọn học liệu cho kỹ năng con đang luyện
               </h2>
               <a
                 href="#san-pham"

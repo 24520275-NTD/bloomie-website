@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Bloomie — Dụng cụ học tập",
-  description: "Khám phá học liệu và hoạt động sáng tạo cùng Bloomie.",
+  title: "Bloomie — Học liệu hỗ trợ phát triển",
+  description:
+    "Học liệu cho trẻ gặp khó khăn trong phát triển trí tuệ, giúp ba mẹ cùng con luyện tư duy, ngôn ngữ và vận động tinh.",
 };
 
 export default function RootLayout({

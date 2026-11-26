@@ -374,7 +374,8 @@ export default function Shop({
             </h1>
             {!cartPage && (
               <p className="mt-3 max-w-lg text-sm leading-6 text-[#496259] sm:text-base">
-                Chọn bộ học liệu để bé tự tay thử nghiệm, sáng tạo và khám phá.
+                Chọn học liệu hỗ trợ tư duy, ngôn ngữ và vận động tinh cho trẻ
+                gặp khó khăn trong phát triển trí tuệ.
               </p>
             )}
           </div>

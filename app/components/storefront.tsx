@@ -130,8 +130,8 @@ export default function Storefront({
                 bloomie<span className="text-[#f58220]">.</span>
               </a>
               <p className="mt-4 max-w-[360px] text-base leading-[1.6] text-[#4a5568]">
-                Dụng cụ học tập giúp bé khám phá thế giới bằng đôi tay và trí tò
-                mò của chính mình.
+                Học liệu cho trẻ gặp khó khăn trong phát triển trí tuệ, để ba mẹ
+                cùng con luyện từng kỹ năng theo nhịp của mình.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 {[
