@@ -219,7 +219,7 @@ export default function OrderDetail({ id, productImages }: { id: string; product
       <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6">
         <header>
           <p className="inline-flex rounded-full bg-[#E8F1DD] px-3 py-1 text-xs font-bold text-[#245C45]"><span aria-hidden="true" className="mr-2">●</span> ĐƠN HÀNG TRỰC TUYẾN</p>
-          <h1 className="font-display mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Chi tiết đơn hàng</h1>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Chi tiết đơn hàng</h1>
           {order && (
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
@@ -249,7 +249,7 @@ export default function OrderDetail({ id, productImages }: { id: string; product
               </div>
 
               <aside aria-labelledby="order-payment" className="rounded-3xl border border-[#E2EBDD] bg-[#E8F1DD] p-5 shadow-sm sm:p-6">
-                <h2 id="order-payment" className="font-display text-xl font-extrabold">Tóm tắt thanh toán</h2>
+                <h2 id="order-payment" className="text-xl font-bold">Tóm tắt thanh toán</h2>
                 <dl className="mt-4 text-sm">
                   {!!order.order_items.length && (
                     <div className="flex justify-between gap-3 text-[#4A5568]">
