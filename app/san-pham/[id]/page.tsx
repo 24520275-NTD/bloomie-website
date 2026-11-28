@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import AddToCart from "../../components/add-to-cart";
 import { Icon } from "../../components/bloomie-icon";
 import Storefront from "../../components/storefront";
+import ReviewSection from "../../components/reviews/review-section";
 import { getProducts } from "../../lib/products";
 
 const money = new Intl.NumberFormat("vi-VN", {
@@ -173,7 +174,7 @@ export default async function ProductDetailPage({
         </div>
 
         {detail && (
-          <div className="mt-10 space-y-6">
+          <div className="mt-10">
             <section aria-labelledby="product-specifications" className="overflow-hidden rounded-3xl border border-[#dce8d8] bg-white">
               <h2 id="product-specifications" className="bg-[#e8f1dd] px-5 py-4 text-xl font-bold sm:px-6">
                 Chi tiết sản phẩm
@@ -189,8 +190,13 @@ export default async function ProductDetailPage({
                 </tbody>
               </table>
             </section>
+          </div>
+        )}
 
-            <section aria-labelledby="product-description" className="rounded-3xl border border-[#dce8d8] bg-white p-5 sm:p-6">
+        <ReviewSection key={product.id} product={product.id} />
+
+        {detail && (
+            <section aria-labelledby="product-description" className="mt-10 rounded-3xl border border-[#dce8d8] bg-white p-5 sm:p-6">
               <h2 id="product-description" className="text-xl font-bold">Mô tả sản phẩm</h2>
               <p className="mt-3 text-sm leading-6 text-[#4a5568]">{detail.description}</p>
               <h3 className="mt-4 font-semibold text-[#245c45]">Cách chơi cùng con</h3>
@@ -200,7 +206,6 @@ export default async function ProductDetailPage({
               <h3 className="mt-5 font-semibold text-[#245c45]">Bảo quản và lưu ý khi chơi</h3>
               <p className="mt-2 text-sm leading-6 text-[#4a5568]">{detail.care}</p>
             </section>
-          </div>
         )}
       </main>
     </Storefront>
