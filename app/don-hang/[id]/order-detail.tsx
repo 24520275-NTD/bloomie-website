@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, BadgeCheck, BookOpen, CalendarDays, Check, Clock, Copy, MapPin, Phone, QrCode, ShoppingBag, UserRound, Wallet, X } from "lucide-react";
+import { ArrowLeft, BadgeCheck, BookOpen, CalendarDays, Check, Clock, Copy, MapPin, Phone, QrCode, ShoppingBag, UserRound, Wallet, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -205,14 +205,9 @@ function OrderCompletion({ order, productImages, copied, onCopy }: {
               <dt className="text-[#4A5568]">Phương thức:</dt><dd className="font-semibold">{vnpay ? "QR VNPay (minh họa)" : "Ví giả lập"}</dd>
             </div>
           </dl>
-          <div className="mt-6 grid gap-3">
-            <Link href={`/don-hang/${order.id}`} className={`${pill} min-h-12 w-full bg-[#245C45] text-white hover:bg-[#1C4B38] active:bg-[#163D2E]`}>
-              Xem chi tiết đơn hàng <ArrowRight size={16} aria-hidden="true" />
-            </Link>
-            <Link href="/san-pham" className={`${pill} min-h-12 w-full border border-[#BFD2B7] bg-white text-[#245C45] hover:bg-[#F5F8F1] active:bg-[#E8F1DD]`}>
-              Tiếp tục khám phá sản phẩm
-            </Link>
-          </div>
+          <Link href="/san-pham" className={`${pill} mt-6 min-h-12 w-full border border-[#BFD2B7] bg-white text-[#245C45] hover:bg-[#F5F8F1] active:bg-[#E8F1DD]`}>
+            Tiếp tục khám phá sản phẩm
+          </Link>
         </section>
       </div>
     </main>
