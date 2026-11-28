@@ -8,8 +8,7 @@ import ReviewSection from "../../components/reviews/review-section";
 import { getProducts } from "../../lib/products";
 
 const money = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
+  maximumFractionDigits: 0,
 });
 
 const productDetails: Record<string, {
@@ -141,13 +140,13 @@ export default async function ProductDetailPage({
             </h1>
 
             <div className="mt-5 rounded-[24px] border border-[#dce8d8] bg-white px-5 py-4">
-              <p className="text-xs font-semibold tracking-wide text-[#52645a]">
-                GIÁ BÁN NIÊM YẾT
+              <p className="text-sm font-medium text-[#52645a]">
+                Giá bán niêm yết
               </p>
-              <p className="mt-1 text-2xl font-extrabold text-[#1f3d33]">
+              <p className="mt-1 text-2xl leading-tight font-bold text-[#1f3d33] tabular-nums">
                 {product.price_vnd === null
                   ? "Giá đang cập nhật"
-                  : money.format(product.price_vnd)}
+                  : `${money.format(product.price_vnd)} đ`}
               </p>
             </div>
 
