@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import hero from "../../public/assets/bo-dung-cu-hoc-tap.png";
 import { createClient, hasSupabaseConfig } from "../lib/supabase-browser";
@@ -13,6 +14,7 @@ export default function AccountForm({ signup = false, confirmationFailed = false
   signup?: boolean;
   confirmationFailed?: boolean;
 }) {
+  const router = useRouter();
   const [supabase] = useState(() => hasSupabaseConfig ? createClient() : null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(hasSupabaseConfig);
@@ -77,10 +79,10 @@ export default function AccountForm({ signup = false, confirmationFailed = false
             : "Kiểm tra hộp thư email, kể cả thư rác, rồi mở liên kết xác nhận bằng trình duyệt này.",
         });
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        setUserEmail(data.user?.email ?? null);
-        setNotice({ text: "Đăng nhập thành công." });
+        router.replace("/");
+        return;
       }
 
       form.reset();
