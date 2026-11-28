@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { cartQuantityLimit, useCart } from "../lib/cart";
 import { Icon } from "./bloomie-icon";
+
+type CartFeedback = { kind: "success" } | { kind: "error"; message: string };
+const addedLabel = "Đã thêm vào giỏ";
 
 export default function AddToCart({
   productId,
@@ -16,21 +19,35 @@ export default function AddToCart({
 }) {
   const { changeCartQuantity, ready } = useCart();
   const [quantity, setQuantity] = useState(1);
-  const [message, setMessage] = useState("");
+  const [feedback, setFeedback] = useState<CartFeedback | null>(null);
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const added = feedback?.kind === "success";
+  const error = feedback?.kind === "error" ? feedback.message : "";
+
+  useEffect(() => () => clearTimeout(resetTimer.current), []);
 
   function add() {
+    clearTimeout(resetTimer.current);
     try {
       const changed = changeCartQuantity(
         productId,
         showQuantity ? quantity : 1,
       );
-      setMessage(
-        changed
-          ? "Đã cập nhật giỏ hàng."
-          : `Sản phẩm đã đạt giới hạn ${cartQuantityLimit} bộ trong giỏ.`,
-      );
+      if (!changed) {
+        setFeedback({
+          kind: "error",
+          message: `Sản phẩm đã đạt giới hạn ${cartQuantityLimit} bộ trong giỏ.`,
+        });
+        return;
+      }
+
+      setFeedback({ kind: "success" });
+      resetTimer.current = setTimeout(() => setFeedback(null), 1800);
     } catch {
-      setMessage("Chưa thêm được sản phẩm. Hãy mở trang giỏ hàng để kiểm tra.");
+      setFeedback({
+        kind: "error",
+        message: "Chưa thêm được sản phẩm. Hãy mở trang giỏ hàng để kiểm tra.",
+      });
     }
   }
 
@@ -71,10 +88,10 @@ export default function AddToCart({
         type="button"
         onClick={add}
         disabled={!ready}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#245c45] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1c4b38]"
+        className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-semibold motion-safe:transition motion-safe:active:scale-[.98] focus-visible:ring-2 focus-visible:ring-[#245c45] focus-visible:ring-offset-2 disabled:opacity-60 ${added ? "bg-[#e8f1dd] text-[#245c45] hover:bg-[#dce8d8]" : "bg-[#245c45] text-white hover:bg-[#1c4b38]"}`}
       >
-        <Icon name="bag" className="size-4" />
-        Thêm vào giỏ hàng
+        <Icon name={added ? "check" : "bag"} className="size-4" />
+        {added ? addedLabel : "Thêm vào giỏ hàng"}
       </button>
 
       {!compact && (
@@ -89,9 +106,9 @@ export default function AddToCart({
 
       <p
         role="status"
-        className="text-xs leading-5 text-[#496259] not-empty:mt-2"
+        className={error ? "mt-2 text-xs leading-5 text-[#496259]" : "sr-only"}
       >
-        {message}
+        {added ? addedLabel : error}
       </p>
     </div>
   );
