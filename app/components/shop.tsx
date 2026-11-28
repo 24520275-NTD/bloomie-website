@@ -91,7 +91,7 @@ function Catalog({ products }: { products: Product[] }) {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Nhập tên bộ học liệu"
-              className="bloomie-field pl-12"
+              className="bloomie-field scroll-mt-12 pl-12"
             />
           </div>
         </div>

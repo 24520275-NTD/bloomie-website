@@ -43,7 +43,7 @@ export default function Storefront({
     <div className="bloomie-storefront flex min-h-screen flex-col bg-[#fffdf8] text-[#1f3d33]">
       {showHeader && (
         <header className="border-b border-[#1f3d33]/8 bg-[#fffdf8]/95">
-          <div className="flex min-h-18 w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-3 md:min-h-20 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+          <div className="flex min-h-18 w-full flex-wrap items-center justify-between gap-x-2 gap-y-2 px-3 py-3 sm:px-5 md:min-h-20 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
             <a
               href={home ? "#top" : "/"}
               className="group rounded-md text-[25px] font-extrabold tracking-[-.04em] outline-none focus-visible:ring-3 focus-visible:ring-[#f58220]/50 lg:justify-self-center"
@@ -71,7 +71,14 @@ export default function Storefront({
                 </Link>
               ))}
             </nav>
-            <div className="flex items-center gap-2 lg:justify-self-center lg:gap-6">
+            <div className="flex items-center gap-1 sm:gap-2 lg:justify-self-center xl:gap-6">
+              <Link
+                href="/san-pham#catalog-search"
+                aria-label="Tìm kiếm sản phẩm"
+                className="grid size-11 place-items-center rounded-full text-[#245c45] transition-colors hover:bg-[#e8f1dd] active:bg-[#dce8d8] focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
+              >
+                <Icon name="search" className="size-6" />
+              </Link>
               <Link
                 href="/gio-hang"
                 aria-current={pathname === "/gio-hang" ? "page" : undefined}
