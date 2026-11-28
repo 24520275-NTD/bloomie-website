@@ -77,7 +77,7 @@ export default function Storefront({
                 aria-label="Tìm kiếm sản phẩm"
                 className="grid size-11 place-items-center rounded-full text-[#245c45] transition-colors hover:bg-[#e8f1dd] active:bg-[#dce8d8] focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
               >
-                <Icon name="search" className="size-6" />
+                <Icon name="search" className="size-9 stroke-2" />
               </Link>
               <Link
                 href="/gio-hang"
