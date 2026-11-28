@@ -43,7 +43,7 @@ export default function Storefront({
     <div className="bloomie-storefront flex min-h-screen flex-col bg-[#fffdf8] text-[#1f3d33]">
       {showHeader && (
         <header className="border-b border-[#1f3d33]/8 bg-[#fffdf8]/95">
-          <div className="flex min-h-18 w-full flex-wrap items-center justify-between gap-x-2 gap-y-2 px-3 py-3 sm:px-5 md:min-h-20 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+          <div className="flex min-h-16 w-full flex-wrap items-center justify-between gap-x-2 gap-y-2 px-3 py-2 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
             <a
               href={home ? "#top" : "/"}
               className="group rounded-md text-[25px] font-extrabold tracking-[-.04em] outline-none focus-visible:ring-3 focus-visible:ring-[#f58220]/50 lg:justify-self-center"
@@ -55,7 +55,7 @@ export default function Storefront({
               </span>
             </a>
             <nav
-              className="hidden items-center gap-4 lg:flex xl:gap-8"
+              className="hidden items-center gap-4 lg:flex xl:gap-6"
               aria-label="Điều hướng chính"
             >
               {navigation.map(([item, href]) => (
@@ -65,19 +65,19 @@ export default function Storefront({
                   aria-current={
                     !home && pathname === homeLink(href) ? "page" : undefined
                   }
-                  className="rounded-sm py-2 text-lg font-bold whitespace-nowrap text-[#346b56] outline-none transition-colors decoration-2 underline-offset-[6px] hover:text-[#245c45] hover:underline focus-visible:ring-3 focus-visible:ring-[#f58220]/50 xl:text-xl"
+                  className="rounded-sm py-2 text-base font-bold whitespace-nowrap text-[#346b56] outline-none transition-colors decoration-2 underline-offset-[6px] hover:text-[#245c45] hover:underline focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
                 >
                   {item}
                 </Link>
               ))}
             </nav>
-            <div className="flex items-center gap-1 sm:gap-2 lg:justify-self-center xl:gap-6">
+            <div className="flex items-center gap-1 sm:gap-2 lg:justify-self-center xl:gap-4">
               <Link
                 href="/san-pham#catalog-search"
                 aria-label="Tìm kiếm sản phẩm"
                 className="grid size-11 place-items-center rounded-full text-[#245c45] transition-colors hover:bg-[#e8f1dd] active:bg-[#dce8d8] focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
               >
-                <Icon name="search" className="size-9 stroke-2" />
+                <Icon name="search" className="size-7 stroke-2" />
               </Link>
               <Link
                 href="/gio-hang"
@@ -85,7 +85,7 @@ export default function Storefront({
                 aria-label={count ? `Giỏ hàng, ${count} sản phẩm` : "Giỏ hàng"}
                 className="relative grid size-11 place-items-center rounded-full text-[#245c45] transition-colors hover:bg-[#e8f1dd] focus-visible:ring-3 focus-visible:ring-[#f58220]/50"
               >
-                <Icon name="bag" className="size-9" />
+                <Icon name="bag" className="size-7" />
                 {count > 0 && (
                   <span
                     aria-hidden="true"
