@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AddToCart from "../../components/add-to-cart";
 import { Icon } from "../../components/bloomie-icon";
+import ProductGallery from "../../components/product-gallery";
 import Storefront from "../../components/storefront";
 import ReviewSection from "../../components/reviews/review-section";
 import { getProducts } from "../../lib/products";
@@ -13,6 +13,7 @@ const money = new Intl.NumberFormat("vi-VN", {
 });
 
 const productDetails: Record<string, {
+  galleryImageCount?: number;
   summary: string;
   specifications: [label: string, value: string][];
   description: string;
@@ -20,6 +21,7 @@ const productDetails: Record<string, {
   care: string;
 }> = {
   "ghep-hinh-logic": {
+    galleryImageCount: 4,
     summary: "Bé tìm hai bức hình có liên quan rồi ghép lại với nhau, như gà con với gà mẹ hay thỏ với cà rốt. Mỗi cặp có đường cắt riêng để bé tự thử và kiểm tra.",
     specifications: [
       ["Thương hiệu", "Bloomie"],
@@ -37,6 +39,7 @@ const productDetails: Record<string, {
     care: "Lau bằng khăn khô hoặc hơi ẩm, tránh ngâm nước và tránh ánh nắng trực tiếp. Ba mẹ nên ở bên quan sát khi con chơi.",
   },
   "the-tu-vung": {
+    galleryImageCount: 4,
     summary: "100 thẻ ảnh thật về đồ vật, con vật và những điều quen thuộc quanh bé. Mỗi thẻ có từ tiếng Việt và câu gợi ý để ba mẹ trò chuyện cùng con.",
     specifications: [
       ["Thương hiệu", "Bloomie"],
@@ -57,6 +60,7 @@ const productDetails: Record<string, {
     care: "Lau thẻ bằng khăn ẩm khi bẩn, tránh ngâm nước và cất lại vào hộp sau khi chơi để thẻ không bị cong.",
   },
   "bo-oc-van": {
+    galleryImageCount: 4,
     summary: "Bộ 20 cặp bu lông và đai ốc bằng nhựa PP có 4 hình khối và 5 màu. Bé có thể ghép cặp rồi tập giữ bằng một tay, xoay bằng tay còn lại.",
     specifications: [
       ["Thương hiệu", "Bloomie"],
@@ -104,6 +108,10 @@ export default async function ProductDetailPage({
   const detail = Object.hasOwn(productDetails, product.id)
     ? productDetails[product.id]
     : undefined;
+  const galleryImages = Array.from({ length: detail?.galleryImageCount ?? 0 }, (_, index) =>
+    `/product-gallery/${product.id}-${index + 1}.png`,
+  );
+  const [cover, ...alternateImages] = galleryImages;
 
   return (
     <Storefront>
@@ -116,27 +124,11 @@ export default async function ProductDetailPage({
         </Link>
 
         <div className="mt-6 grid items-start gap-8 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-12">
-          <div className="rounded-[32px] border border-[#e4eddc] bg-[#f0f5e9] p-4 sm:p-5">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[24px] bg-white">
-              <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                priority
-                sizes="(max-width: 767px) 90vw, (max-width: 1200px) 55vw, 640px"
-                className="object-contain p-5 sm:p-8"
-              />
-              <a
-                href={product.image}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Mở ảnh sản phẩm trong tab mới"
-                className="absolute top-3 right-3 grid size-10 place-items-center rounded-full bg-white text-[#245c45] shadow-sm hover:bg-[#e8f1dd]"
-              >
-                <Icon name="search" className="size-5" />
-              </a>
-            </div>
-          </div>
+          <ProductGallery
+            key={product.id}
+            name={product.name}
+            images={cover ? [cover, ...alternateImages] : [product.image]}
+          />
 
           <section className="min-w-0">
             <p className="inline-flex rounded-full bg-[#e8f1dd] px-3 py-1 text-xs font-bold tracking-wide text-[#245c45]">
