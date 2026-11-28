@@ -18,6 +18,7 @@ const statuses: Record<string, typeof pendingStatus> = {
   pending_cod: { ...pendingStatus, label: "Chờ giao hàng (COD)" },
   paid: paidStatus,
   paid_simulated: { ...paidStatus, label: "Đã thanh toán giả lập" },
+  completed_vnpay_demo: { ...paidStatus, label: "Đã hoàn tất" },
   cancelled: { label: "Đã hủy", icon: X, color: "bg-[#FDECE9] text-[#A72B23]" },
 };
 const money = new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" });

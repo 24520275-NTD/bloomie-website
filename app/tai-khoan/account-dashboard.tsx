@@ -19,6 +19,7 @@ const ordersPerPage = 5;
 const orderFilters = [
   { value: "all", label: "Tất cả đơn hàng" },
   { value: "paid", label: "Đã thanh toán" },
+  { value: "completed_vnpay_demo", label: "Đã hoàn tất (VNPay minh họa)" },
   { value: "pending_payment", label: "Chờ thanh toán" },
   { value: "pending_vnpay_demo", label: "Chờ thanh toán VNPay (minh họa)" },
   { value: "pending_cod", label: "Chờ giao hàng (COD)" },

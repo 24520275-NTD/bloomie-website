@@ -44,6 +44,7 @@ const statuses = {
   pending_cod: { label: "Chờ giao hàng (COD)", icon: Clock, style: "bg-[#FFF1C8] text-[#754204]" },
   paid: { label: "Đã thanh toán", icon: Check, style: "bg-[#DCF4E8] text-[#245C45]" },
   paid_simulated: { label: "Đã thanh toán giả lập", icon: Check, style: "bg-[#DCF4E8] text-[#245C45]" },
+  completed_vnpay_demo: { label: "Đã hoàn tất", icon: Check, style: "bg-[#DCF4E8] text-[#245C45]" },
   cancelled: { label: "Đã hủy", icon: X, style: "bg-[#FDECE9] text-[#A72B23]" },
 } as const;
 
@@ -51,13 +52,13 @@ function OrderProgress({ order }: { order: Order }) {
   const pending = order.status === "pending_payment";
   const cashOnDelivery = order.status === "pending_cod";
   const vnpay = order.status === "pending_vnpay_demo";
-  const completed = order.status === "paid_simulated";
+  const completed = order.status === "paid_simulated" || order.status === "completed_vnpay_demo";
   const paid = order.status === "paid" || completed;
   const cancelled = order.status === "cancelled";
   const steps = [
     { label: "Đặt hàng", detail: dateTime.format(new Date(order.created_at)), icon: Check, done: true, current: false },
-    { label: "Thanh toán", detail: cancelled ? "Đơn đã hủy" : paid ? "Đã thanh toán" : cashOnDelivery ? "Khi nhận hàng (COD)" : vnpay ? "QR VNPay (minh họa)" : pending ? "Chờ thanh toán" : "Chưa có thông tin", icon: cancelled ? X : vnpay ? QrCode : Wallet, done: paid, current: pending || cashOnDelivery || vnpay },
-    { label: "Hoàn tất", detail: completed ? (order.paid_at ? dateTime.format(new Date(order.paid_at)) : "Đã hoàn tất thanh toán") : "Chưa có thông tin", icon: completed ? Check : BadgeCheck, done: completed, current: false },
+    { label: "Thanh toán", detail: cancelled ? "Đơn đã hủy" : order.status === "completed_vnpay_demo" ? "VNPay (minh họa)" : paid ? "Đã thanh toán" : cashOnDelivery ? "Khi nhận hàng (COD)" : vnpay ? "QR VNPay (minh họa)" : pending ? "Chờ thanh toán" : "Chưa có thông tin", icon: cancelled ? X : vnpay ? QrCode : Wallet, done: paid, current: pending || cashOnDelivery || vnpay },
+    { label: "Hoàn tất", detail: completed ? (order.paid_at ? dateTime.format(new Date(order.paid_at)) : "Đã hoàn tất") : "Chưa có thông tin", icon: completed ? Check : BadgeCheck, done: completed, current: false },
   ];
 
   return <OrderSteps label="Tiến trình đơn hàng" steps={steps} />;
@@ -137,13 +138,14 @@ function OrderCompletion({ order, productImages, copied, onCopy }: {
   const headingRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => { headingRef.current?.focus(); }, []);
 
+  const vnpay = order.status === "completed_vnpay_demo";
   const shortId = order.id.slice(0, 8).toUpperCase();
   const subtotal = order.order_items.length
     ? order.order_items.reduce((sum, item) => sum + item.quantity * item.unit_price_vnd, 0)
     : order.total_vnd;
   const steps = [
     { label: "Đặt hàng", detail: dateTime.format(new Date(order.created_at)), icon: Check, done: true, current: false },
-    { label: "Thanh toán", detail: "Đã thanh toán", icon: Check, done: true, current: false },
+    { label: "Thanh toán", detail: vnpay ? "VNPay (minh họa)" : "Đã thanh toán", icon: Check, done: true, current: false },
     { label: "Hoàn tất", detail: order.paid_at ? dateTime.format(new Date(order.paid_at)) : "Đã hoàn tất thanh toán", icon: Check, done: true, current: true },
   ];
   return (
@@ -172,7 +174,7 @@ function OrderCompletion({ order, productImages, copied, onCopy }: {
             <Copy size={14} aria-hidden="true" />
           </button>
           <p className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#E8F1DD] px-4 py-2 text-sm font-semibold text-[#245C45]">
-            <Check size={15} aria-hidden="true" /> Trạng thái: Đã thanh toán giả lập
+            <Check size={15} aria-hidden="true" /> Trạng thái: {vnpay ? "Đã hoàn tất" : "Đã thanh toán giả lập"}
           </p>
         </div>
         <p role="status" className={copied ? "mt-2 text-sm text-[#245C45]" : "sr-only"}>{copied}</p>
@@ -200,7 +202,7 @@ function OrderCompletion({ order, productImages, copied, onCopy }: {
               <dd className="text-[32px] leading-tight font-bold text-[#245C45]">{price(order.total_vnd)}</dd>
             </div>
             <div className="flex justify-between gap-4 text-xs">
-              <dt className="text-[#4A5568]">Phương thức:</dt><dd className="font-semibold">Ví giả lập</dd>
+              <dt className="text-[#4A5568]">Phương thức:</dt><dd className="font-semibold">{vnpay ? "QR VNPay (minh họa)" : "Ví giả lập"}</dd>
             </div>
           </dl>
           <div className="mt-6 grid gap-3">
@@ -217,6 +219,13 @@ function OrderCompletion({ order, productImages, copied, onCopy }: {
   );
 }
 
+const actionRpc = {
+  pay: "pay_order_with_demo_wallet",
+  cancel: "cancel_pending_order",
+  complete: "complete_demo_vnpay_order",
+} as const;
+type OrderAction = keyof typeof actionRpc;
+
 export default function OrderDetail({ id, productImages, showCompletion }: {
   id: string;
   productImages: Record<string, string>;
@@ -229,7 +238,7 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
   const [balance, setBalance] = useState<number | null>(null);
   const [copied, setCopied] = useState("");
   const [confirmCancel, setConfirmCancel] = useState(false);
-  const [busy, setBusy] = useState<"pay" | "cancel" | null>(null);
+  const [busy, setBusy] = useState<OrderAction | null>(null);
   const [actionError, setActionError] = useState("");
   const actionInProgress = useRef(false);
 
@@ -272,16 +281,18 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
     return () => { active = false; };
   }, [id, showCompletion]);
 
-  async function submitAction(action: "pay" | "cancel") {
-    const canCancelDeferred = action === "cancel" &&
-      (order?.status === "pending_cod" || order?.status === "pending_vnpay_demo");
-    if (actionInProgress.current || (order?.status !== "pending_payment" && !canCancelDeferred)) return;
+  async function submitAction(action: OrderAction) {
+    const canSubmit = action === "complete"
+      ? order?.status === "pending_vnpay_demo"
+      : order?.status === "pending_payment" || (action === "cancel" &&
+        (order?.status === "pending_cod" || order?.status === "pending_vnpay_demo"));
+    if (actionInProgress.current || !canSubmit) return;
     actionInProgress.current = true;
     setBusy(action);
     setActionError("");
     try {
       const { data, error } = await createClient().rpc(
-        action === "pay" ? "pay_order_with_demo_wallet" : "cancel_pending_order",
+        actionRpc[action],
         { p_order_id: id },
       );
       if (error) {
@@ -289,9 +300,14 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
         return;
       }
       if (action === "pay") setBalance(Number(data));
-      setOrder((current) => current && { ...current, status: action === "pay" ? "paid_simulated" : "cancelled" });
+      const nextStatus = action === "complete" ? "completed_vnpay_demo" : action === "pay" ? "paid_simulated" : "cancelled";
+      setOrder((current) => current && {
+        ...current,
+        status: nextStatus,
+        paid_at: action === "complete" && typeof data === "string" ? data : current.paid_at,
+      });
       setConfirmCancel(false);
-      if (action === "pay") router.replace(`/don-hang/${id}?hoan-tat=1`);
+      if (action !== "cancel") router.replace(`/don-hang/${id}?hoan-tat=1`);
     } catch {
       setActionError("Kết nối bị gián đoạn. Bạn thử lại nhé.");
     } finally {
@@ -318,7 +334,7 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
   const subtotal = order?.order_items.reduce((sum, item) => sum + item.quantity * item.unit_price_vnd, 0);
   const shortfall = order && balance !== null ? Math.max(0, order.total_vnd - balance) : 0;
 
-  if (showCompletion && order?.status === "paid_simulated") {
+  if (showCompletion && (order?.status === "paid_simulated" || order?.status === "completed_vnpay_demo")) {
     return <Storefront><OrderCompletion order={order} productImages={productImages} copied={copied} onCopy={copyOrder} /></Storefront>;
   }
 
@@ -395,7 +411,7 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
                         className="h-auto w-40 max-w-full"
                       />
                       <figcaption className="text-xs leading-5 text-[#4A5568]">
-                        Mã minh họa chỉ chứa văn bản VNPAY DEMO. Đơn vẫn chờ thanh toán sau khi quét.
+                        Mã QR chỉ dùng để minh họa. Bấm Hoàn tất đơn hàng để kết thúc quy trình giả lập.
                       </figcaption>
                     </figure>
                   </section>
@@ -425,7 +441,13 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
                 )}
 
                 <div className="mt-5 space-y-2 border-t border-[#CBDCC2] pt-4">
-                  <Link href="/san-pham" className={`${pill} w-full border border-[#BFD2B7] hover:bg-white`}><ArrowLeft size={16} aria-hidden="true" /> Tiếp tục khám phá sản phẩm</Link>
+                  {vnpay ? (
+                    <button type="button" disabled={busy !== null || confirmCancel} onClick={() => void submitAction("complete")} className="bloomie-button w-full disabled:opacity-60">
+                      <Check size={16} aria-hidden="true" /> {busy === "complete" ? "Đang hoàn tất…" : "Hoàn tất đơn hàng"}
+                    </button>
+                  ) : (
+                    <Link href="/san-pham" className={`${pill} w-full border border-[#BFD2B7] hover:bg-white`}><ArrowLeft size={16} aria-hidden="true" /> Tiếp tục khám phá sản phẩm</Link>
+                  )}
                   {(pending || cashOnDelivery || vnpay) && (confirmCancel ? (
                     <div className="space-y-3 rounded-2xl border border-[#F4C8C3] bg-white p-3 text-sm">
                       <p className="font-semibold">Bạn muốn hủy đơn hàng này?</p>
