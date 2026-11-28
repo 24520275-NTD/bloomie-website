@@ -26,6 +26,7 @@ type Order = {
   recipient_phone: string;
   shipping_address: string;
   paid_at?: string | null;
+  completed_at?: string | null;
   order_items: { product_id: string; product_name: string; quantity: number; unit_price_vnd: number }[];
 };
 
@@ -45,20 +46,27 @@ const statuses = {
   paid: { label: "Đã thanh toán", icon: Check, style: "bg-[#DCF4E8] text-[#245C45]" },
   paid_simulated: { label: "Đã thanh toán giả lập", icon: Check, style: "bg-[#DCF4E8] text-[#245C45]" },
   completed_vnpay_demo: { label: "Đã hoàn tất", icon: Check, style: "bg-[#DCF4E8] text-[#245C45]" },
+  completed_cod: { label: "Đã hoàn tất", icon: Check, style: "bg-[#DCF4E8] text-[#245C45]" },
   cancelled: { label: "Đã hủy", icon: X, style: "bg-[#FDECE9] text-[#A72B23]" },
 } as const;
+
+function completionLabel(order: Order) {
+  const time = order.completed_at ?? order.paid_at;
+  return time ? dateTime.format(new Date(time)) : "Đã hoàn tất";
+}
 
 function OrderProgress({ order }: { order: Order }) {
   const pending = order.status === "pending_payment";
   const cashOnDelivery = order.status === "pending_cod";
   const vnpay = order.status === "pending_vnpay_demo";
-  const completed = order.status === "paid_simulated" || order.status === "completed_vnpay_demo";
+  const completedCod = order.status === "completed_cod";
+  const completed = order.status === "paid_simulated" || order.status === "completed_vnpay_demo" || completedCod;
   const paid = order.status === "paid" || completed;
   const cancelled = order.status === "cancelled";
   const steps = [
     { label: "Đặt hàng", detail: dateTime.format(new Date(order.created_at)), icon: Check, done: true, current: false },
-    { label: "Thanh toán", detail: cancelled ? "Đơn đã hủy" : order.status === "completed_vnpay_demo" ? "VNPay (minh họa)" : paid ? "Đã thanh toán" : cashOnDelivery ? "Khi nhận hàng (COD)" : vnpay ? "QR VNPay (minh họa)" : pending ? "Chờ thanh toán" : "Chưa có thông tin", icon: cancelled ? X : vnpay ? QrCode : Wallet, done: paid, current: pending || cashOnDelivery || vnpay },
-    { label: "Hoàn tất", detail: completed ? (order.paid_at ? dateTime.format(new Date(order.paid_at)) : "Đã hoàn tất") : "Chưa có thông tin", icon: completed ? Check : BadgeCheck, done: completed, current: false },
+    { label: "Thanh toán", detail: cancelled ? "Đơn đã hủy" : order.status === "completed_vnpay_demo" ? "VNPay (minh họa)" : cashOnDelivery || completedCod ? "Khi nhận hàng (COD)" : paid ? "Đã thanh toán" : vnpay ? "QR VNPay (minh họa)" : pending ? "Chờ thanh toán" : "Chưa có thông tin", icon: cancelled ? X : vnpay ? QrCode : Wallet, done: paid, current: pending || cashOnDelivery || vnpay },
+    { label: "Hoàn tất", detail: completed ? completionLabel(order) : "Chưa có thông tin", icon: completed ? Check : BadgeCheck, done: completed, current: false },
   ];
 
   return <OrderSteps label="Tiến trình đơn hàng" steps={steps} />;
@@ -139,14 +147,15 @@ function OrderCompletion({ order, productImages, copied, onCopy }: {
   useEffect(() => { headingRef.current?.focus(); }, []);
 
   const vnpay = order.status === "completed_vnpay_demo";
+  const cod = order.status === "completed_cod";
   const shortId = order.id.slice(0, 8).toUpperCase();
   const subtotal = order.order_items.length
     ? order.order_items.reduce((sum, item) => sum + item.quantity * item.unit_price_vnd, 0)
     : order.total_vnd;
   const steps = [
     { label: "Đặt hàng", detail: dateTime.format(new Date(order.created_at)), icon: Check, done: true, current: false },
-    { label: "Thanh toán", detail: vnpay ? "VNPay (minh họa)" : "Đã thanh toán", icon: Check, done: true, current: false },
-    { label: "Hoàn tất", detail: order.paid_at ? dateTime.format(new Date(order.paid_at)) : "Đã hoàn tất thanh toán", icon: Check, done: true, current: true },
+    { label: "Thanh toán", detail: cod ? "Khi nhận hàng (COD)" : vnpay ? "VNPay (minh họa)" : "Đã thanh toán", icon: Check, done: true, current: false },
+    { label: "Hoàn tất", detail: completionLabel(order), icon: Check, done: true, current: true },
   ];
   return (
     <main className={orderPageClass}>
@@ -166,7 +175,7 @@ function OrderCompletion({ order, productImages, copied, onCopy }: {
           Cảm ơn bạn đã đặt hàng tại Bloomie!
         </h1>
         <p className="mx-auto mt-4 max-w-[560px] text-base leading-7 text-[#4A5568]">
-          Chúng tôi đã nhận được đơn hàng của bạn và sẽ sớm liên hệ để xác nhận giao hàng.
+          {cod ? "Đơn COD của bạn đã được đánh dấu hoàn tất." : "Chúng tôi đã nhận được đơn hàng của bạn và sẽ sớm liên hệ để xác nhận giao hàng."}
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <button type="button" onClick={onCopy} aria-label={`Sao chép mã đơn ${shortId}`} className={`${pill} border border-[#DCE8D5] bg-white hover:bg-[#F5F8F1] active:bg-[#E8F1DD]`}>
@@ -174,7 +183,7 @@ function OrderCompletion({ order, productImages, copied, onCopy }: {
             <Copy size={14} aria-hidden="true" />
           </button>
           <p className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#E8F1DD] px-4 py-2 text-sm font-semibold text-[#245C45]">
-            <Check size={15} aria-hidden="true" /> Trạng thái: {vnpay ? "Đã hoàn tất" : "Đã thanh toán giả lập"}
+            <Check size={15} aria-hidden="true" /> Trạng thái: {vnpay || cod ? "Đã hoàn tất" : "Đã thanh toán giả lập"}
           </p>
         </div>
         <p role="status" className={copied ? "mt-2 text-sm text-[#245C45]" : "sr-only"}>{copied}</p>
@@ -183,7 +192,7 @@ function OrderCompletion({ order, productImages, copied, onCopy }: {
       <OrderSteps
         label="Tiến trình đơn hàng"
         steps={steps}
-        nextStep={<>Bước tiếp theo: <strong className="text-[#1F3D33]">Bloomie xác nhận và chuẩn bị đơn hàng của bạn.</strong></>}
+        nextStep={cod ? "Phương thức thanh toán: Khi nhận hàng (COD)." : <>Bước tiếp theo: <strong className="text-[#1F3D33]">Bloomie xác nhận và chuẩn bị đơn hàng của bạn.</strong></>}
       />
 
       <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
@@ -202,7 +211,7 @@ function OrderCompletion({ order, productImages, copied, onCopy }: {
               <dd className="text-[32px] leading-tight font-bold text-[#245C45]">{price(order.total_vnd)}</dd>
             </div>
             <div className="flex justify-between gap-4 text-xs">
-              <dt className="text-[#4A5568]">Phương thức:</dt><dd className="font-semibold">{vnpay ? "QR VNPay (minh họa)" : "Ví giả lập"}</dd>
+              <dt className="text-[#4A5568]">Phương thức:</dt><dd className="font-semibold">{cod ? "Thanh toán khi nhận hàng (COD)" : vnpay ? "QR VNPay (minh họa)" : "Ví giả lập"}</dd>
             </div>
           </dl>
           <Link href="/san-pham" className={`${pill} mt-6 min-h-12 w-full border border-[#BFD2B7] bg-white text-[#245C45] hover:bg-[#F5F8F1] active:bg-[#E8F1DD]`}>
@@ -218,6 +227,7 @@ const actionRpc = {
   pay: "pay_order_with_demo_wallet",
   cancel: "cancel_pending_order",
   complete: "complete_demo_vnpay_order",
+  completeCod: "complete_cod_order",
 } as const;
 type OrderAction = keyof typeof actionRpc;
 
@@ -253,7 +263,10 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
         }
         const findOrder = (fields: string) => supabase.from("orders").select(fields)
           .eq("id", id).eq("user_id", user.id).maybeSingle<Order>();
-        let { data, error } = await findOrder(`paid_at,${orderFields}`);
+        let { data, error } = await findOrder(`completed_at,paid_at,${orderFields}`);
+        if (error?.code === "42703") {
+          ({ data, error } = await findOrder(`paid_at,${orderFields}`));
+        }
         if (error?.code === "42703") {
           ({ data, error } = await findOrder(orderFields));
         }
@@ -277,7 +290,9 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
   }, [id, showCompletion]);
 
   async function submitAction(action: OrderAction) {
-    const canSubmit = action === "complete"
+    const canSubmit = action === "completeCod"
+      ? order?.status === "pending_cod"
+      : action === "complete"
       ? order?.status === "pending_vnpay_demo"
       : order?.status === "pending_payment" || (action === "cancel" &&
         (order?.status === "pending_cod" || order?.status === "pending_vnpay_demo"));
@@ -295,11 +310,12 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
         return;
       }
       if (action === "pay") setBalance(Number(data));
-      const nextStatus = action === "complete" ? "completed_vnpay_demo" : action === "pay" ? "paid_simulated" : "cancelled";
+      const nextStatus = action === "completeCod" ? "completed_cod" : action === "complete" ? "completed_vnpay_demo" : action === "pay" ? "paid_simulated" : "cancelled";
       setOrder((current) => current && {
         ...current,
         status: nextStatus,
         paid_at: action === "complete" && typeof data === "string" ? data : current.paid_at,
+        completed_at: action === "completeCod" && typeof data === "string" ? data : current.completed_at,
       });
       setConfirmCancel(false);
       if (action !== "cancel") router.replace(`/don-hang/${id}?hoan-tat=1`);
@@ -329,7 +345,7 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
   const subtotal = order?.order_items.reduce((sum, item) => sum + item.quantity * item.unit_price_vnd, 0);
   const shortfall = order && balance !== null ? Math.max(0, order.total_vnd - balance) : 0;
 
-  if (showCompletion && (order?.status === "paid_simulated" || order?.status === "completed_vnpay_demo")) {
+  if (showCompletion && (order?.status === "paid_simulated" || order?.status === "completed_vnpay_demo" || order?.status === "completed_cod")) {
     return <Storefront><OrderCompletion order={order} productImages={productImages} copied={copied} onCopy={copyOrder} /></Storefront>;
   }
 
@@ -436,9 +452,9 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
                 )}
 
                 <div className="mt-5 space-y-2 border-t border-[#CBDCC2] pt-4">
-                  {vnpay ? (
-                    <button type="button" disabled={busy !== null || confirmCancel} onClick={() => void submitAction("complete")} className="bloomie-button w-full disabled:opacity-60">
-                      <Check size={16} aria-hidden="true" /> {busy === "complete" ? "Đang hoàn tất…" : "Hoàn tất đơn hàng"}
+                  {vnpay || cashOnDelivery ? (
+                    <button type="button" disabled={busy !== null || confirmCancel} onClick={() => void submitAction(cashOnDelivery ? "completeCod" : "complete")} className="bloomie-button w-full disabled:opacity-60">
+                      <Check size={16} aria-hidden="true" /> {busy === "complete" || busy === "completeCod" ? "Đang hoàn tất…" : "Hoàn tất đơn hàng"}
                     </button>
                   ) : (
                     <Link href="/san-pham" className={`${pill} w-full border border-[#BFD2B7] hover:bg-white`}><ArrowLeft size={16} aria-hidden="true" /> Tiếp tục khám phá sản phẩm</Link>

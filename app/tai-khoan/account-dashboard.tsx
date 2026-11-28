@@ -19,7 +19,7 @@ const ordersPerPage = 5;
 const orderFilters = [
   { value: "all", label: "Tất cả đơn hàng" },
   { value: "paid", label: "Đã thanh toán" },
-  { value: "completed_vnpay_demo", label: "Đã hoàn tất (VNPay minh họa)" },
+  { value: "completed", label: "Đã hoàn tất" },
   { value: "pending_payment", label: "Chờ thanh toán" },
   { value: "pending_vnpay_demo", label: "Chờ thanh toán VNPay (minh họa)" },
   { value: "pending_cod", label: "Chờ giao hàng (COD)" },
@@ -104,6 +104,8 @@ export default function AccountDashboard({
           .eq("user_id", userId!);
         if (orderFilter === "paid") {
           orders.in("status", ["paid", "paid_simulated"]);
+        } else if (orderFilter === "completed") {
+          orders.in("status", ["completed_vnpay_demo", "completed_cod"]);
         } else if (orderFilter !== "all") {
           orders.eq("status", orderFilter);
         }
