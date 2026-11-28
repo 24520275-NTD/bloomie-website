@@ -9,10 +9,9 @@ import { useCart } from "../lib/cart";
 import "../home.css";
 
 const navigation = [
-  ["Danh mục", "#danh-muc"],
   ["Sản phẩm", "#san-pham"],
+  ["Cẩm nang", "#danh-muc"],
   ["Vì sao chọn Bloomie", "#loi-ich"],
-  ["Hỏi đáp", "#faq"],
   ["Học liệu", "/hoc-lieu"],
   ["Creator", "/creator/dang-ky"],
 ] as const;
