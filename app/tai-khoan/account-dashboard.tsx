@@ -20,6 +20,7 @@ const orderFilters = [
   { value: "all", label: "Tất cả đơn hàng" },
   { value: "paid", label: "Đã thanh toán" },
   { value: "pending_payment", label: "Chờ thanh toán" },
+  { value: "pending_cod", label: "Chờ giao hàng (COD)" },
   { value: "cancelled", label: "Đã hủy" },
 ] as const;
 type OrderFilter = (typeof orderFilters)[number]["value"];
@@ -112,7 +113,7 @@ export default function AccountDashboard({
           supabase!.from("orders")
             .select("id", { count: "exact", head: true })
             .eq("user_id", userId!)
-            .eq("status", "pending_payment"),
+            .in("status", ["pending_payment", "pending_cod"]),
         ]);
 
         if (!active) return;
@@ -193,7 +194,7 @@ export default function AccountDashboard({
   const pending = accountOrders?.pending ?? null;
   const total = accountOrders?.total ?? null;
   const stats = [
-    { label: "ĐANG XỬ LÝ", value: pending, description: pending === null ? "Đơn chờ thanh toán" : `${pending} đơn chờ thanh toán`, icon: Package },
+    { label: "ĐANG XỬ LÝ", value: pending, description: pending === null ? "Đơn hàng đang xử lý" : `${pending} đơn đang xử lý`, icon: Package },
     { label: "YÊU THÍCH", value: null, description: "Chưa có dữ liệu", icon: Heart },
     { label: "ĐIỂM BLOOMIE", value: null, description: "Chưa có dữ liệu", icon: Star },
   ];
@@ -259,7 +260,7 @@ export default function AccountDashboard({
         return;
       }
 
-      if (orderFilter === "pending_payment" && accountOrders?.orders.length === 1) {
+      if ((orderFilter === "pending_payment" || orderFilter === "pending_cod") && accountOrders?.orders.length === 1) {
         setOrderPage((page) => Math.max(0, page - 1));
       }
       setOrdersRevision((revision) => revision + 1);

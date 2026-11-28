@@ -1,5 +1,5 @@
 "use client";
-import { Check, MapPin, Phone, ShoppingBag, UserRound, Wallet } from "lucide-react";
+import { MapPin, Phone, ShoppingBag, Truck, UserRound, Wallet } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -24,7 +24,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [needsLogin, setNeedsLogin] = useState(false);
-  const [createdOrder, setCreatedOrder] = useState<{ id: string; ownerId: string } | null>(null);
+  const [createdOrder, setCreatedOrder] = useState<{ id: string; ownerId: string; cashOnDelivery: boolean } | null>(null);
 
   const items = products.filter(({ id }) => cart[id] > 0);
   const missingIds = Object.keys(cart).filter(
@@ -83,6 +83,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
     }
 
     const fields = new FormData(event.currentTarget);
+    const cashOnDelivery = fields.get("payment_method") === "cod";
     const payload = {
       p_recipient_name: String(fields.get("name") ?? "").trim(),
       p_recipient_phone: String(fields.get("phone") ?? "").trim(),
@@ -113,7 +114,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
         return;
       }
 
-      const key = JSON.stringify([user.id, payload]);
+      const key = JSON.stringify([user.id, payload, cashOnDelivery]);
       if (request.current?.key !== key) {
         request.current = { key, id: crypto.randomUUID() };
       }
@@ -121,11 +122,14 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
       const { data, error } = await supabase.rpc("create_order", {
         p_request_id: request.current.id,
         ...payload,
+        ...(cashOnDelivery ? { p_payment_method: "cod" } : {}),
       });
 
       if (error) {
         setMessage(
-          error.code === "P0001"
+          cashOnDelivery && error.code === "PGRST202"
+            ? "COD chưa được kích hoạt. Bạn có thể chọn ví giả lập."
+            : error.code === "P0001"
             ? error.message
             : "Chưa xác nhận được kết quả. Bạn có thể thử lại với thông tin hiện tại.",
         );
@@ -133,7 +137,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
       }
 
       if (typeof data === "string" && data) {
-        setCreatedOrder({ id: data, ownerId: user.id });
+        setCreatedOrder({ id: data, ownerId: user.id, cashOnDelivery });
         try {
           removePurchasedItems(payload.p_cart);
         } catch {
@@ -157,7 +161,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
   function renderContent() {
     if (confirmedOrder) {
       return (
-        <CheckoutConfirmation orderId={confirmedOrder.id} message={message} />
+        <CheckoutConfirmation orderId={confirmedOrder.id} message={message} cashOnDelivery={confirmedOrder.cashOnDelivery} />
       );
     }
 
@@ -282,13 +286,21 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
               Phương thức thanh toán
             </h2>
 
-            <div className="mt-4 rounded-2xl border border-[#E7EDE2] bg-[#F7FAF4] px-4 py-3">
-              <p className="flex items-center gap-2 font-bold text-[#245C45]"><Check size={16} aria-hidden="true" /> Ví giả lập Bloomie</p>
-              <p className="mt-1 text-sm leading-6 text-[#52645a]">
-                Sau khi xác nhận đơn, bạn có thể thanh toán bằng số dư giả lập
-                trên trang chi tiết đơn hàng. Trang đó cũng có mã QR VNPay
-                để xem minh họa.
-              </p>
+            <div role="radiogroup" aria-labelledby="payment-title" className="mt-4 grid gap-3">
+              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-[#E7EDE2] px-4 py-3 has-checked:border-[#245C45] has-checked:bg-[#F7FAF4]">
+                <input type="radio" name="payment_method" value="wallet" defaultChecked className="mt-1 accent-[#245C45]" />
+                <span>
+                  <span className="flex items-center gap-2 font-bold text-[#245C45]"><Wallet size={16} aria-hidden="true" /> Ví giả lập Bloomie</span>
+                  <span className="mt-1 block text-sm leading-6 text-[#52645a]">Thanh toán bằng ví hoặc xem QR VNPay minh họa trên trang chi tiết đơn hàng.</span>
+                </span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-[#E7EDE2] px-4 py-3 has-checked:border-[#245C45] has-checked:bg-[#F7FAF4]">
+                <input type="radio" name="payment_method" value="cod" className="mt-1 accent-[#245C45]" />
+                <span>
+                  <span className="flex items-center gap-2 font-bold text-[#245C45]"><Truck size={16} aria-hidden="true" /> Thanh toán khi nhận hàng (COD)</span>
+                  <span className="mt-1 block text-sm leading-6 text-[#52645a]">Bạn trả tiền khi nhận hàng.</span>
+                </span>
+              </label>
             </div>
           </section>
         </fieldset>
@@ -374,7 +386,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
 
   return (
     <>
-      <CheckoutHeading orderId={confirmedOrder?.id} hasItems={ready && items.length > 0} />
+      <CheckoutHeading orderId={confirmedOrder?.id} hasItems={ready && items.length > 0} cashOnDelivery={confirmedOrder?.cashOnDelivery} />
       {renderContent()}
     </>
   );

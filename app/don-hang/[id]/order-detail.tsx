@@ -40,6 +40,7 @@ const dateTime = new Intl.DateTimeFormat("vi-VN", {
 });
 const statuses = {
   pending_payment: { label: "Chờ thanh toán", icon: Clock, style: "bg-[#FFF1C8] text-[#754204]" },
+  pending_cod: { label: "Chờ giao hàng (COD)", icon: Clock, style: "bg-[#FFF1C8] text-[#754204]" },
   paid: { label: "Đã thanh toán", icon: Check, style: "bg-[#DCF4E8] text-[#245C45]" },
   paid_simulated: { label: "Đã thanh toán giả lập", icon: Check, style: "bg-[#DCF4E8] text-[#245C45]" },
   cancelled: { label: "Đã hủy", icon: X, style: "bg-[#FDECE9] text-[#A72B23]" },
@@ -47,12 +48,13 @@ const statuses = {
 
 function OrderProgress({ order }: { order: Order }) {
   const pending = order.status === "pending_payment";
+  const cashOnDelivery = order.status === "pending_cod";
   const completed = order.status === "paid_simulated";
   const paid = order.status === "paid" || completed;
   const cancelled = order.status === "cancelled";
   const steps = [
     { label: "Đặt hàng", detail: dateTime.format(new Date(order.created_at)), icon: Check, done: true, current: false },
-    { label: "Thanh toán", detail: cancelled ? "Đơn đã hủy" : paid ? "Đã thanh toán" : pending ? "Chờ thanh toán" : "Chưa có thông tin", icon: cancelled ? X : Wallet, done: paid, current: pending },
+    { label: "Thanh toán", detail: cancelled ? "Đơn đã hủy" : paid ? "Đã thanh toán" : cashOnDelivery ? "Khi nhận hàng (COD)" : pending ? "Chờ thanh toán" : "Chưa có thông tin", icon: cancelled ? X : Wallet, done: paid, current: pending || cashOnDelivery },
     { label: "Hoàn tất", detail: completed ? (order.paid_at ? dateTime.format(new Date(order.paid_at)) : "Đã hoàn tất thanh toán") : "Chưa có thông tin", icon: completed ? Check : BadgeCheck, done: completed, current: false },
   ];
 
@@ -269,7 +271,8 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
   }, [id, showCompletion]);
 
   async function submitAction(action: "pay" | "cancel") {
-    if (actionInProgress.current || order?.status !== "pending_payment") return;
+    const canCancelCod = action === "cancel" && order?.status === "pending_cod";
+    if (actionInProgress.current || (order?.status !== "pending_payment" && !canCancelCod)) return;
     actionInProgress.current = true;
     setBusy(action);
     setActionError("");
@@ -304,6 +307,7 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
   }
 
   const pending = order?.status === "pending_payment";
+  const cashOnDelivery = order?.status === "pending_cod";
   const status = order && statuses[order.status as keyof typeof statuses];
   const StatusIcon = status ? status.icon : Clock;
   const shortId = order?.id.slice(0, 8).toUpperCase();
@@ -363,6 +367,13 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
                   </div>
                 </dl>
 
+                {cashOnDelivery && (
+                  <p className="mt-5 rounded-2xl bg-white p-4 text-sm leading-6">
+                    <strong className="block text-[#245C45]">Thanh toán khi nhận hàng (COD)</strong>
+                    Bạn trả {price(order.total_vnd)} khi nhận hàng.
+                  </p>
+                )}
+
                 {pending && (
                   <div className="mt-5 space-y-3">
                     <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-white p-3">
@@ -408,7 +419,7 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
 
                 <div className="mt-5 space-y-2 border-t border-[#CBDCC2] pt-4">
                   <Link href="/san-pham" className={`${pill} w-full border border-[#BFD2B7] hover:bg-white`}><ArrowLeft size={16} aria-hidden="true" /> Tiếp tục khám phá sản phẩm</Link>
-                  {pending && (confirmCancel ? (
+                  {(pending || cashOnDelivery) && (confirmCancel ? (
                     <div className="space-y-3 rounded-2xl border border-[#F4C8C3] bg-white p-3 text-sm">
                       <p className="font-semibold">Bạn muốn hủy đơn hàng này?</p>
                       <div className="flex flex-wrap gap-2">

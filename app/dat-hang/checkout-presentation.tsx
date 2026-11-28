@@ -8,13 +8,17 @@ import {
   orderSummaryClass,
 } from "../components/order-layout";
 
-export function CheckoutHeading({ orderId, hasItems = false }: { orderId?: string; hasItems?: boolean }) {
+export function CheckoutHeading({ orderId, hasItems = false, cashOnDelivery = false }: {
+  orderId?: string;
+  hasItems?: boolean;
+  cashOnDelivery?: boolean;
+}) {
   const confirmed = Boolean(orderId);
   const cartDone = confirmed || hasItems;
   const steps = [
     { label: "Giỏ hàng", detail: cartDone ? "Đã chọn sản phẩm" : "Kiểm tra giỏ hàng", icon: cartDone ? Check : ShoppingBag, done: cartDone, current: false, href: confirmed ? undefined : "/gio-hang" },
     { label: "Đặt hàng", detail: confirmed ? "Đã xác nhận" : "Nhập thông tin nhận hàng", icon: confirmed ? Check : MapPin, done: confirmed, current: !confirmed },
-    { label: "Thanh toán", detail: confirmed ? "Chờ thanh toán" : "Sau khi đặt hàng", icon: Wallet, done: false, current: confirmed },
+    { label: "Thanh toán", detail: cashOnDelivery ? "Khi nhận hàng (COD)" : confirmed ? "Chờ thanh toán" : "Sau khi đặt hàng", icon: Wallet, done: false, current: confirmed },
   ];
 
   return (
@@ -33,7 +37,7 @@ export function CheckoutHeading({ orderId, hasItems = false }: { orderId?: strin
                 Mã đơn: <strong>#{orderId.slice(0, 8).toUpperCase()}</strong>
               </p>
               <p className="inline-flex items-center gap-2 rounded-full bg-[#FFF1C8] px-3 py-2 text-xs font-semibold text-[#754204]">
-                <Clock size={15} aria-hidden="true" /> Trạng thái: Chờ thanh toán
+                <Clock size={15} aria-hidden="true" /> Trạng thái: {cashOnDelivery ? "Chờ giao hàng (COD)" : "Chờ thanh toán"}
               </p>
             </>
           ) : (
@@ -46,7 +50,11 @@ export function CheckoutHeading({ orderId, hasItems = false }: { orderId?: strin
   );
 }
 
-export function CheckoutConfirmation({ orderId, message }: { orderId: string; message: string }) {
+export function CheckoutConfirmation({ orderId, message, cashOnDelivery }: {
+  orderId: string;
+  message: string;
+  cashOnDelivery: boolean;
+}) {
   return (
     <div className={orderColumnsClass}>
       <section aria-labelledby="checkout-confirmation" className={orderCardClass}>
@@ -61,7 +69,11 @@ export function CheckoutConfirmation({ orderId, message }: { orderId: string; me
       </section>
       <aside aria-labelledby="checkout-next-step" className={orderSummaryClass}>
         <h2 id="checkout-next-step" className="text-xl font-bold">Thanh toán đơn hàng</h2>
-        <p className="mt-3 text-sm leading-6 text-[#4A5568]">Bạn có thể thanh toán bằng ví giả lập Bloomie trên trang chi tiết đơn hàng.</p>
+        <p className="mt-3 text-sm leading-6 text-[#4A5568]">
+          {cashOnDelivery
+            ? "Bạn đã chọn COD. Số tiền của đơn sẽ được thanh toán khi nhận hàng."
+            : "Bạn có thể thanh toán bằng ví giả lập Bloomie trên trang chi tiết đơn hàng."}
+        </p>
         <Link href={`/don-hang/${orderId}`} className="bloomie-button mt-5 w-full">
           Xem chi tiết đơn hàng <ArrowRight size={16} aria-hidden="true" />
         </Link>
