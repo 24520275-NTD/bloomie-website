@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, BadgeCheck, BookOpen, CalendarDays, Check, Clock, Copy, MapPin, Phone, ShoppingBag, Truck, UserRound, Wallet, X } from "lucide-react";
+import { ArrowLeft, BadgeCheck, BookOpen, CalendarDays, Check, Clock, Copy, MapPin, Phone, ShoppingBag, UserRound, Wallet, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -44,7 +44,6 @@ function OrderProgress({ order }: { order: Order }) {
   const steps = [
     { label: "Đặt hàng", detail: dateTime.format(new Date(order.created_at)), icon: Check, done: true, current: false },
     { label: "Thanh toán", detail: cancelled ? "Đơn đã hủy" : paid ? "Đã thanh toán" : pending ? "Chờ thanh toán" : "Chưa có thông tin", icon: cancelled ? X : Wallet, done: paid, current: pending },
-    { label: "Đang giao", detail: "Chưa có thông tin", icon: Truck, done: false, current: false },
     { label: "Hoàn tất", detail: "Chưa có thông tin", icon: BadgeCheck, done: false, current: false },
   ];
 
