@@ -136,7 +136,7 @@ export default function BloomieHome({
 
         <section
           id="danh-muc"
-          className="mx-auto max-w-[1200px] scroll-mt-20 px-5 py-18 md:px-8 md:py-24"
+          className="mx-auto max-w-[1200px] px-5 py-18 md:px-8 md:py-24 lg:grid lg:min-h-svh lg:content-center lg:py-12"
         >
           <div className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
@@ -182,10 +182,10 @@ export default function BloomieHome({
 
         <section
           id="san-pham"
-          className="bg-[#f6f4ec] pt-6 pb-12 md:pt-8 md:pb-16"
+          className="bg-[#f6f4ec] pt-6 pb-12 md:pt-8 md:pb-16 lg:grid lg:min-h-svh lg:py-8"
         >
-          <div className="mx-auto max-w-[1200px] px-5 md:px-8">
-            <div className="mb-6 text-center">
+          <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8 lg:grid lg:grid-rows-[auto_1fr_auto] lg:gap-6">
+            <div className="mb-6 text-center lg:mb-0">
               <p className="mb-2 text-[13px] font-bold uppercase tracking-[.12em] text-[#1e7d3a]">
                 Danh mục Bloomie
               </p>
@@ -198,13 +198,13 @@ export default function BloomieHome({
               </p>
             </div>
             {productError ? (
-              <p role="alert" className="text-center">
+              <p role="alert" className="self-center text-center">
                 {productError}
               </p>
             ) : products.length === 0 ? (
-              <p className="text-center">Danh mục đang được cập nhật.</p>
+              <p className="self-center text-center">Danh mục đang được cập nhật.</p>
             ) : (
-              <div className="grid gap-6 md:grid-cols-3">
+              <div className="grid gap-6 self-center md:grid-cols-3">
                 {products.slice(0, 3).map((product) => (
                   <article
                     key={product.id}
@@ -216,7 +216,7 @@ export default function BloomieHome({
                     >
                       {product.image?.startsWith("/") &&
                         !product.image.startsWith("//") && (
-                          <div className="relative aspect-[4/3] max-h-56">
+                          <div className="relative aspect-[4/3] max-h-56 lg:aspect-auto lg:h-[clamp(9rem,calc(100svh_-_24rem),min(26rem,27vw))] lg:max-h-none">
                             <Image
                               src={product.image}
                               alt={product.name}
@@ -242,7 +242,7 @@ export default function BloomieHome({
                 ))}
               </div>
             )}
-            <div className="mt-8 text-center">
+            <div className="mt-8 text-center lg:mt-0">
               <Link
                 href="/san-pham"
                 className="font-bold text-[#245c45] underline underline-offset-4"
@@ -255,7 +255,7 @@ export default function BloomieHome({
 
         <section
           id="loi-ich"
-          className="mx-auto grid max-w-[1200px] scroll-mt-20 gap-12 px-5 py-20 md:px-8 md:py-28 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:gap-20"
+          className="mx-auto grid max-w-[1200px] gap-12 px-5 py-20 md:px-8 md:py-28 lg:min-h-svh lg:grid-cols-[.9fr_1.1fr] lg:content-center lg:items-center lg:gap-20 lg:py-12"
         >
           <div className="relative min-h-[440px] overflow-hidden rounded-[36px] bg-[#245c45] p-8 text-white sm:p-10">
             <span className="absolute -right-20 -top-20 size-64 rounded-full border-[45px] border-white/7" />
@@ -338,7 +338,7 @@ export default function BloomieHome({
 
         <section
           id="faq"
-          className="mx-auto grid max-w-[1040px] scroll-mt-20 gap-10 px-5 py-20 md:px-8 md:py-28 lg:grid-cols-[.7fr_1.3fr] lg:gap-20"
+          className="mx-auto grid max-w-[1040px] gap-10 px-5 py-20 md:px-8 md:py-28 lg:min-h-svh lg:grid-cols-[.7fr_1.3fr] lg:content-center lg:gap-20 lg:py-12"
         >
           <div>
             <p className="mb-3 text-[13px] font-bold uppercase tracking-[.12em] text-[#1e7d3a]">
