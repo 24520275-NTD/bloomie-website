@@ -286,7 +286,8 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
               <p className="flex items-center gap-2 font-bold text-[#245C45]"><Check size={16} aria-hidden="true" /> Ví giả lập Bloomie</p>
               <p className="mt-1 text-sm leading-6 text-[#52645a]">
                 Sau khi xác nhận đơn, bạn có thể thanh toán bằng số dư giả lập
-                trên trang chi tiết đơn hàng.
+                trên trang chi tiết đơn hàng. Trang đó cũng có mã QR VNPay
+                để xem minh họa.
               </p>
             </div>
           </section>

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, BadgeCheck, BookOpen, CalendarDays, Check, Clock, Copy, MapPin, Phone, ShoppingBag, UserRound, Wallet, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, BadgeCheck, BookOpen, CalendarDays, Check, Clock, Copy, MapPin, Phone, QrCode, ShoppingBag, UserRound, Wallet, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -383,6 +383,26 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
                       </div>
                     )}
                     <p className="text-center text-xs leading-relaxed text-[#4A5568]">Thanh toán thử nghiệm bằng ví Bloomie.</p>
+                    <details className="rounded-2xl border border-[#CBDCC2] bg-white">
+                      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-[#245C45] hover:bg-[#F5F8F1] focus-visible:outline-2 focus-visible:outline-[#245C45] [&::-webkit-details-marker]:hidden">
+                        <QrCode size={18} aria-hidden="true" />
+                        Xem QR VNPay
+                        <span className="ml-auto rounded-full bg-[#FFF1C8] px-2 py-1 text-xs text-[#754204]">Minh họa</span>
+                      </summary>
+                      <figure className="flex flex-col items-center gap-3 border-t border-[#E7EDE2] p-4 text-center">
+                        <Image
+                          src="/vnpay-demo-qr.png"
+                          alt="Mã QR minh họa chứa văn bản VNPAY DEMO"
+                          width={232}
+                          height={232}
+                          unoptimized
+                          className="h-auto w-40 max-w-full"
+                        />
+                        <figcaption className="text-xs leading-5 text-[#4A5568]">
+                          Mã minh họa chỉ chứa văn bản VNPAY DEMO. Đơn vẫn chờ thanh toán sau khi quét.
+                        </figcaption>
+                      </figure>
+                    </details>
                   </div>
                 )}
 
