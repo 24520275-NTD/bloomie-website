@@ -182,17 +182,17 @@ export default function BloomieHome({
 
         <section
           id="san-pham"
-          className="scroll-mt-20 bg-[#f6f4ec] py-18 md:py-24"
+          className="bg-[#f6f4ec] pt-6 pb-12 md:pt-8 md:pb-16"
         >
           <div className="mx-auto max-w-[1200px] px-5 md:px-8">
-            <div className="mb-10 text-center">
-              <p className="mb-3 text-[13px] font-bold uppercase tracking-[.12em] text-[#1e7d3a]">
+            <div className="mb-6 text-center">
+              <p className="mb-2 text-[13px] font-bold uppercase tracking-[.12em] text-[#1e7d3a]">
                 Danh mục Bloomie
               </p>
               <h2 className="font-display text-[34px] leading-tight font-bold tracking-[-.035em] md:text-[40px]">
                 Học liệu hỗ trợ phát triển
               </h2>
-              <p className="mx-auto mt-4 max-w-xl text-[16px] leading-7 text-[#4a5568]">
+              <p className="mx-auto mt-2 max-w-xl text-[16px] leading-7 text-[#4a5568]">
                 Xem từng bộ học liệu để chọn hoạt động phù hợp với kỹ năng
                 con đang luyện.
               </p>
@@ -216,7 +216,7 @@ export default function BloomieHome({
                     >
                       {product.image?.startsWith("/") &&
                         !product.image.startsWith("//") && (
-                          <div className="relative aspect-[4/3]">
+                          <div className="relative aspect-[4/3] max-h-56">
                             <Image
                               src={product.image}
                               alt={product.name}
@@ -226,7 +226,7 @@ export default function BloomieHome({
                             />
                           </div>
                         )}
-                      <h3 className="p-4 font-display text-xl font-bold">
+                      <h3 className="px-4 py-3 font-display text-xl font-bold">
                         {product.name}
                       </h3>
                     </Link>
