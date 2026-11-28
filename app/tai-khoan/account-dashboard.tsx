@@ -20,6 +20,7 @@ const orderFilters = [
   { value: "all", label: "Tất cả đơn hàng" },
   { value: "paid", label: "Đã thanh toán" },
   { value: "pending_payment", label: "Chờ thanh toán" },
+  { value: "pending_vnpay_demo", label: "Chờ thanh toán VNPay (minh họa)" },
   { value: "pending_cod", label: "Chờ giao hàng (COD)" },
   { value: "cancelled", label: "Đã hủy" },
 ] as const;
@@ -113,7 +114,7 @@ export default function AccountDashboard({
           supabase!.from("orders")
             .select("id", { count: "exact", head: true })
             .eq("user_id", userId!)
-            .in("status", ["pending_payment", "pending_cod"]),
+            .in("status", ["pending_payment", "pending_cod", "pending_vnpay_demo"]),
         ]);
 
         if (!active) return;
@@ -260,7 +261,7 @@ export default function AccountDashboard({
         return;
       }
 
-      if ((orderFilter === "pending_payment" || orderFilter === "pending_cod") && accountOrders?.orders.length === 1) {
+      if ((orderFilter === "pending_payment" || orderFilter === "pending_cod" || orderFilter === "pending_vnpay_demo") && accountOrders?.orders.length === 1) {
         setOrderPage((page) => Math.max(0, page - 1));
       }
       setOrdersRevision((revision) => revision + 1);

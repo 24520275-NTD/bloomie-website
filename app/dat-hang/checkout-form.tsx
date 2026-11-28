@@ -1,5 +1,5 @@
 "use client";
-import { MapPin, Phone, ShoppingBag, Truck, UserRound, Wallet } from "lucide-react";
+import { MapPin, Phone, QrCode, ShoppingBag, Truck, UserRound, Wallet } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -8,7 +8,7 @@ import { getCartOwnerId, useCart } from "../lib/cart";
 import type { Product } from "../lib/products";
 import { defaultShippingAddressKey, parseShippingAddress } from "../lib/shipping-address";
 import { createClient, hasSupabaseConfig } from "../lib/supabase-browser";
-import { CheckoutConfirmation, CheckoutHeading } from "./checkout-presentation";
+import { CheckoutConfirmation, CheckoutHeading, type PaymentMethod } from "./checkout-presentation";
 
 const money = new Intl.NumberFormat("vi-VN", {
   style: "currency",
@@ -24,7 +24,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [needsLogin, setNeedsLogin] = useState(false);
-  const [createdOrder, setCreatedOrder] = useState<{ id: string; ownerId: string; cashOnDelivery: boolean } | null>(null);
+  const [createdOrder, setCreatedOrder] = useState<{ id: string; ownerId: string; paymentMethod: PaymentMethod } | null>(null);
 
   const items = products.filter(({ id }) => cart[id] > 0);
   const missingIds = Object.keys(cart).filter(
@@ -83,7 +83,8 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
     }
 
     const fields = new FormData(event.currentTarget);
-    const cashOnDelivery = fields.get("payment_method") === "cod";
+    const selectedMethod = fields.get("payment_method");
+    const paymentMethod = selectedMethod === "cod" || selectedMethod === "vnpay_demo" ? selectedMethod : "wallet";
     const payload = {
       p_recipient_name: String(fields.get("name") ?? "").trim(),
       p_recipient_phone: String(fields.get("phone") ?? "").trim(),
@@ -114,7 +115,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
         return;
       }
 
-      const key = JSON.stringify([user.id, payload, cashOnDelivery]);
+      const key = JSON.stringify([user.id, payload, paymentMethod]);
       if (request.current?.key !== key) {
         request.current = { key, id: crypto.randomUUID() };
       }
@@ -122,13 +123,13 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
       const { data, error } = await supabase.rpc("create_order", {
         p_request_id: request.current.id,
         ...payload,
-        ...(cashOnDelivery ? { p_payment_method: "cod" } : {}),
+        ...(paymentMethod === "wallet" ? {} : { p_payment_method: paymentMethod }),
       });
 
       if (error) {
         setMessage(
-          cashOnDelivery && error.code === "PGRST202"
-            ? "COD chưa được kích hoạt. Bạn có thể chọn ví giả lập."
+          paymentMethod !== "wallet" && error.code === "PGRST202"
+            ? "Phương thức này chưa được kích hoạt. Bạn có thể chọn ví giả lập."
             : error.code === "P0001"
             ? error.message
             : "Chưa xác nhận được kết quả. Bạn có thể thử lại với thông tin hiện tại.",
@@ -137,7 +138,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
       }
 
       if (typeof data === "string" && data) {
-        setCreatedOrder({ id: data, ownerId: user.id, cashOnDelivery });
+        setCreatedOrder({ id: data, ownerId: user.id, paymentMethod });
         try {
           removePurchasedItems(payload.p_cart);
         } catch {
@@ -161,7 +162,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
   function renderContent() {
     if (confirmedOrder) {
       return (
-        <CheckoutConfirmation orderId={confirmedOrder.id} message={message} cashOnDelivery={confirmedOrder.cashOnDelivery} />
+        <CheckoutConfirmation orderId={confirmedOrder.id} message={message} paymentMethod={confirmedOrder.paymentMethod} />
       );
     }
 
@@ -291,7 +292,14 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
                 <input type="radio" name="payment_method" value="wallet" defaultChecked className="mt-1 accent-[#245C45]" />
                 <span>
                   <span className="flex items-center gap-2 font-bold text-[#245C45]"><Wallet size={16} aria-hidden="true" /> Ví giả lập Bloomie</span>
-                  <span className="mt-1 block text-sm leading-6 text-[#52645a]">Thanh toán bằng ví hoặc xem QR VNPay minh họa trên trang chi tiết đơn hàng.</span>
+                  <span className="mt-1 block text-sm leading-6 text-[#52645a]">Thanh toán bằng số dư ví giả lập trên trang chi tiết đơn hàng.</span>
+                </span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-[#E7EDE2] px-4 py-3 has-checked:border-[#245C45] has-checked:bg-[#F7FAF4]">
+                <input type="radio" name="payment_method" value="vnpay_demo" className="mt-1 accent-[#245C45]" />
+                <span>
+                  <span className="flex items-center gap-2 font-bold text-[#245C45]"><QrCode size={16} aria-hidden="true" /> QR VNPay (minh họa)</span>
+                  <span className="mt-1 block text-sm leading-6 text-[#52645a]">Xem mã QR mẫu sau khi xác nhận đơn. Mã chỉ dùng để minh họa.</span>
                 </span>
               </label>
               <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-[#E7EDE2] px-4 py-3 has-checked:border-[#245C45] has-checked:bg-[#F7FAF4]">
@@ -386,7 +394,7 @@ export default function CheckoutForm({ products }: { products: Product[] }) {
 
   return (
     <>
-      <CheckoutHeading orderId={confirmedOrder?.id} hasItems={ready && items.length > 0} cashOnDelivery={confirmedOrder?.cashOnDelivery} />
+      <CheckoutHeading orderId={confirmedOrder?.id} hasItems={ready && items.length > 0} paymentMethod={confirmedOrder?.paymentMethod} />
       {renderContent()}
     </>
   );

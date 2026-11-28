@@ -8,17 +8,21 @@ import {
   orderSummaryClass,
 } from "../components/order-layout";
 
-export function CheckoutHeading({ orderId, hasItems = false, cashOnDelivery = false }: {
+export type PaymentMethod = "wallet" | "cod" | "vnpay_demo";
+
+export function CheckoutHeading({ orderId, hasItems = false, paymentMethod = "wallet" }: {
   orderId?: string;
   hasItems?: boolean;
-  cashOnDelivery?: boolean;
+  paymentMethod?: PaymentMethod;
 }) {
   const confirmed = Boolean(orderId);
+  const cashOnDelivery = paymentMethod === "cod";
+  const vnpay = paymentMethod === "vnpay_demo";
   const cartDone = confirmed || hasItems;
   const steps = [
     { label: "Giỏ hàng", detail: cartDone ? "Đã chọn sản phẩm" : "Kiểm tra giỏ hàng", icon: cartDone ? Check : ShoppingBag, done: cartDone, current: false, href: confirmed ? undefined : "/gio-hang" },
     { label: "Đặt hàng", detail: confirmed ? "Đã xác nhận" : "Nhập thông tin nhận hàng", icon: confirmed ? Check : MapPin, done: confirmed, current: !confirmed },
-    { label: "Thanh toán", detail: cashOnDelivery ? "Khi nhận hàng (COD)" : confirmed ? "Chờ thanh toán" : "Sau khi đặt hàng", icon: Wallet, done: false, current: confirmed },
+    { label: "Thanh toán", detail: cashOnDelivery ? "Khi nhận hàng (COD)" : vnpay ? "QR VNPay (minh họa)" : confirmed ? "Chờ thanh toán" : "Sau khi đặt hàng", icon: Wallet, done: false, current: confirmed },
   ];
 
   return (
@@ -37,7 +41,7 @@ export function CheckoutHeading({ orderId, hasItems = false, cashOnDelivery = fa
                 Mã đơn: <strong>#{orderId.slice(0, 8).toUpperCase()}</strong>
               </p>
               <p className="inline-flex items-center gap-2 rounded-full bg-[#FFF1C8] px-3 py-2 text-xs font-semibold text-[#754204]">
-                <Clock size={15} aria-hidden="true" /> Trạng thái: {cashOnDelivery ? "Chờ giao hàng (COD)" : "Chờ thanh toán"}
+                <Clock size={15} aria-hidden="true" /> Trạng thái: {cashOnDelivery ? "Chờ giao hàng (COD)" : vnpay ? "Chờ thanh toán VNPay (minh họa)" : "Chờ thanh toán"}
               </p>
             </>
           ) : (
@@ -50,10 +54,10 @@ export function CheckoutHeading({ orderId, hasItems = false, cashOnDelivery = fa
   );
 }
 
-export function CheckoutConfirmation({ orderId, message, cashOnDelivery }: {
+export function CheckoutConfirmation({ orderId, message, paymentMethod }: {
   orderId: string;
   message: string;
-  cashOnDelivery: boolean;
+  paymentMethod: PaymentMethod;
 }) {
   return (
     <div className={orderColumnsClass}>
@@ -70,9 +74,11 @@ export function CheckoutConfirmation({ orderId, message, cashOnDelivery }: {
       <aside aria-labelledby="checkout-next-step" className={orderSummaryClass}>
         <h2 id="checkout-next-step" className="text-xl font-bold">Thanh toán đơn hàng</h2>
         <p className="mt-3 text-sm leading-6 text-[#4A5568]">
-          {cashOnDelivery
+          {paymentMethod === "cod"
             ? "Bạn đã chọn COD. Số tiền của đơn sẽ được thanh toán khi nhận hàng."
-            : "Bạn có thể thanh toán bằng ví giả lập Bloomie trên trang chi tiết đơn hàng."}
+            : paymentMethod === "vnpay_demo"
+              ? "Mở chi tiết đơn để xem mã QR VNPay minh họa."
+              : "Bạn có thể thanh toán bằng ví giả lập Bloomie trên trang chi tiết đơn hàng."}
         </p>
         <Link href={`/don-hang/${orderId}`} className="bloomie-button mt-5 w-full">
           Xem chi tiết đơn hàng <ArrowRight size={16} aria-hidden="true" />

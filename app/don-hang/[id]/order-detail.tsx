@@ -40,6 +40,7 @@ const dateTime = new Intl.DateTimeFormat("vi-VN", {
 });
 const statuses = {
   pending_payment: { label: "Chờ thanh toán", icon: Clock, style: "bg-[#FFF1C8] text-[#754204]" },
+  pending_vnpay_demo: { label: "Chờ thanh toán VNPay (minh họa)", icon: Clock, style: "bg-[#FFF1C8] text-[#754204]" },
   pending_cod: { label: "Chờ giao hàng (COD)", icon: Clock, style: "bg-[#FFF1C8] text-[#754204]" },
   paid: { label: "Đã thanh toán", icon: Check, style: "bg-[#DCF4E8] text-[#245C45]" },
   paid_simulated: { label: "Đã thanh toán giả lập", icon: Check, style: "bg-[#DCF4E8] text-[#245C45]" },
@@ -49,12 +50,13 @@ const statuses = {
 function OrderProgress({ order }: { order: Order }) {
   const pending = order.status === "pending_payment";
   const cashOnDelivery = order.status === "pending_cod";
+  const vnpay = order.status === "pending_vnpay_demo";
   const completed = order.status === "paid_simulated";
   const paid = order.status === "paid" || completed;
   const cancelled = order.status === "cancelled";
   const steps = [
     { label: "Đặt hàng", detail: dateTime.format(new Date(order.created_at)), icon: Check, done: true, current: false },
-    { label: "Thanh toán", detail: cancelled ? "Đơn đã hủy" : paid ? "Đã thanh toán" : cashOnDelivery ? "Khi nhận hàng (COD)" : pending ? "Chờ thanh toán" : "Chưa có thông tin", icon: cancelled ? X : Wallet, done: paid, current: pending || cashOnDelivery },
+    { label: "Thanh toán", detail: cancelled ? "Đơn đã hủy" : paid ? "Đã thanh toán" : cashOnDelivery ? "Khi nhận hàng (COD)" : vnpay ? "QR VNPay (minh họa)" : pending ? "Chờ thanh toán" : "Chưa có thông tin", icon: cancelled ? X : vnpay ? QrCode : Wallet, done: paid, current: pending || cashOnDelivery || vnpay },
     { label: "Hoàn tất", detail: completed ? (order.paid_at ? dateTime.format(new Date(order.paid_at)) : "Đã hoàn tất thanh toán") : "Chưa có thông tin", icon: completed ? Check : BadgeCheck, done: completed, current: false },
   ];
 
@@ -271,8 +273,9 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
   }, [id, showCompletion]);
 
   async function submitAction(action: "pay" | "cancel") {
-    const canCancelCod = action === "cancel" && order?.status === "pending_cod";
-    if (actionInProgress.current || (order?.status !== "pending_payment" && !canCancelCod)) return;
+    const canCancelDeferred = action === "cancel" &&
+      (order?.status === "pending_cod" || order?.status === "pending_vnpay_demo");
+    if (actionInProgress.current || (order?.status !== "pending_payment" && !canCancelDeferred)) return;
     actionInProgress.current = true;
     setBusy(action);
     setActionError("");
@@ -308,6 +311,7 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
 
   const pending = order?.status === "pending_payment";
   const cashOnDelivery = order?.status === "pending_cod";
+  const vnpay = order?.status === "pending_vnpay_demo";
   const status = order && statuses[order.status as keyof typeof statuses];
   const StatusIcon = status ? status.icon : Clock;
   const shortId = order?.id.slice(0, 8).toUpperCase();
@@ -374,6 +378,29 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
                   </p>
                 )}
 
+                {vnpay && (
+                  <section aria-labelledby="vnpay-demo-heading" className="mt-5 rounded-2xl border border-[#CBDCC2] bg-white">
+                    <h3 id="vnpay-demo-heading" className="flex min-h-11 items-center gap-2 px-4 py-3 text-sm font-semibold text-[#245C45]">
+                      <QrCode size={18} aria-hidden="true" />
+                      QR VNPay
+                      <span className="ml-auto rounded-full bg-[#FFF1C8] px-2 py-1 text-xs text-[#754204]">Minh họa</span>
+                    </h3>
+                    <figure className="flex flex-col items-center gap-3 border-t border-[#E7EDE2] p-4 text-center">
+                      <Image
+                        src="/vnpay-demo-qr.png"
+                        alt="Mã QR minh họa chứa văn bản VNPAY DEMO"
+                        width={232}
+                        height={232}
+                        unoptimized
+                        className="h-auto w-40 max-w-full"
+                      />
+                      <figcaption className="text-xs leading-5 text-[#4A5568]">
+                        Mã minh họa chỉ chứa văn bản VNPAY DEMO. Đơn vẫn chờ thanh toán sau khi quét.
+                      </figcaption>
+                    </figure>
+                  </section>
+                )}
+
                 {pending && (
                   <div className="mt-5 space-y-3">
                     <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-white p-3">
@@ -394,32 +421,12 @@ export default function OrderDetail({ id, productImages, showCompletion }: {
                       </div>
                     )}
                     <p className="text-center text-xs leading-relaxed text-[#4A5568]">Thanh toán thử nghiệm bằng ví Bloomie.</p>
-                    <details className="rounded-2xl border border-[#CBDCC2] bg-white">
-                      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-[#245C45] hover:bg-[#F5F8F1] focus-visible:outline-2 focus-visible:outline-[#245C45] [&::-webkit-details-marker]:hidden">
-                        <QrCode size={18} aria-hidden="true" />
-                        Xem QR VNPay
-                        <span className="ml-auto rounded-full bg-[#FFF1C8] px-2 py-1 text-xs text-[#754204]">Minh họa</span>
-                      </summary>
-                      <figure className="flex flex-col items-center gap-3 border-t border-[#E7EDE2] p-4 text-center">
-                        <Image
-                          src="/vnpay-demo-qr.png"
-                          alt="Mã QR minh họa chứa văn bản VNPAY DEMO"
-                          width={232}
-                          height={232}
-                          unoptimized
-                          className="h-auto w-40 max-w-full"
-                        />
-                        <figcaption className="text-xs leading-5 text-[#4A5568]">
-                          Mã minh họa chỉ chứa văn bản VNPAY DEMO. Đơn vẫn chờ thanh toán sau khi quét.
-                        </figcaption>
-                      </figure>
-                    </details>
                   </div>
                 )}
 
                 <div className="mt-5 space-y-2 border-t border-[#CBDCC2] pt-4">
                   <Link href="/san-pham" className={`${pill} w-full border border-[#BFD2B7] hover:bg-white`}><ArrowLeft size={16} aria-hidden="true" /> Tiếp tục khám phá sản phẩm</Link>
-                  {(pending || cashOnDelivery) && (confirmCancel ? (
+                  {(pending || cashOnDelivery || vnpay) && (confirmCancel ? (
                     <div className="space-y-3 rounded-2xl border border-[#F4C8C3] bg-white p-3 text-sm">
                       <p className="font-semibold">Bạn muốn hủy đơn hàng này?</p>
                       <div className="flex flex-wrap gap-2">

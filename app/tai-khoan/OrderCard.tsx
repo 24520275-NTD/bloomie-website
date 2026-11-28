@@ -14,6 +14,7 @@ const pendingStatus = { label: "Chờ thanh toán", icon: Clock, color: "bg-[#FF
 const paidStatus = { label: "Đã thanh toán", icon: Check, color: "bg-[#DCF4E8] text-[#245C45]" };
 const statuses: Record<string, typeof pendingStatus> = {
   pending_payment: pendingStatus,
+  pending_vnpay_demo: { ...pendingStatus, label: "Chờ thanh toán VNPay (minh họa)" },
   pending_cod: { ...pendingStatus, label: "Chờ giao hàng (COD)" },
   paid: paidStatus,
   paid_simulated: { ...paidStatus, label: "Đã thanh toán giả lập" },
@@ -81,7 +82,7 @@ export default function OrderCard({ order, productImages, onCopy, onCancel }: {
           </Link>
         )}
         <Link href={detail} className="acct-btn acct-light w-full sm:w-auto">Xem chi tiết đơn</Link>
-        {(pending || order.status === "pending_cod") && (
+        {(pending || order.status === "pending_cod" || order.status === "pending_vnpay_demo") && (
           <button type="button" onClick={() => onCancel(order.id)} className="acct-btn w-full text-[#B42318] hover:bg-[#FFF1EF] sm:ml-auto sm:w-auto">
             Hủy đơn hàng
           </button>
