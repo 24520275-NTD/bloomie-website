@@ -1,10 +1,12 @@
 "use client";
 
-import { ArrowLeft, BadgeCheck, BookOpen, CalendarDays, Check, Clock, Copy, MapPin, Phone, ShoppingBag, UserRound, Wallet, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, BadgeCheck, BookOpen, CalendarDays, Check, Clock, Copy, MapPin, Phone, ShoppingBag, UserRound, Wallet, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
+  completedOrderCardClass,
   orderCardClass as card,
   orderColumnsClass,
   orderPageClass,
@@ -23,10 +25,16 @@ type Order = {
   recipient_name: string;
   recipient_phone: string;
   shipping_address: string;
+  paid_at?: string | null;
   order_items: { product_id: string; product_name: string; quantity: number; unit_price_vnd: number }[];
 };
 
-const money = new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" });
+const numberFormat = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 });
+function price(amount: number) {
+  return `${numberFormat.format(amount)} ₫`;
+}
+
+const orderFields = "id,created_at,status,total_vnd,recipient_name,recipient_phone,shipping_address,order_items(product_id,product_name,quantity,unit_price_vnd)";
 const dateTime = new Intl.DateTimeFormat("vi-VN", {
   dateStyle: "short", timeStyle: "short", timeZone: "Asia/Ho_Chi_Minh",
 });
@@ -39,21 +47,22 @@ const statuses = {
 
 function OrderProgress({ order }: { order: Order }) {
   const pending = order.status === "pending_payment";
-  const paid = order.status === "paid" || order.status === "paid_simulated";
+  const completed = order.status === "paid_simulated";
+  const paid = order.status === "paid" || completed;
   const cancelled = order.status === "cancelled";
   const steps = [
     { label: "Đặt hàng", detail: dateTime.format(new Date(order.created_at)), icon: Check, done: true, current: false },
     { label: "Thanh toán", detail: cancelled ? "Đơn đã hủy" : paid ? "Đã thanh toán" : pending ? "Chờ thanh toán" : "Chưa có thông tin", icon: cancelled ? X : Wallet, done: paid, current: pending },
-    { label: "Hoàn tất", detail: "Chưa có thông tin", icon: BadgeCheck, done: false, current: false },
+    { label: "Hoàn tất", detail: completed ? (order.paid_at ? dateTime.format(new Date(order.paid_at)) : "Đã hoàn tất thanh toán") : "Chưa có thông tin", icon: completed ? Check : BadgeCheck, done: completed, current: false },
   ];
 
   return <OrderSteps label="Tiến trình đơn hàng" steps={steps} />;
 }
 
-function Products({ order, productImages }: { order: Order; productImages: Record<string, string> }) {
+function Products({ order, productImages, completed = false }: { order: Order; productImages: Record<string, string>; completed?: boolean }) {
   const quantity = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
   return (
-    <section aria-labelledby="order-products" className={card}>
+    <section aria-labelledby="order-products" className={completed ? completedOrderCardClass : card}>
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E7EDE2] pb-4">
         <h2 id="order-products" className="flex items-center gap-2 text-base font-bold">
           <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#E8F1DD] text-[#245C45]"><ShoppingBag size={16} aria-hidden="true" /></span>
@@ -65,7 +74,7 @@ function Products({ order, productImages }: { order: Order; productImages: Recor
         {order.order_items.map((item) => {
           const image = productImages[item.product_id];
           return (
-            <li key={item.product_id} className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-2xl border border-[#E7EDE2] bg-[#F7FAF4] p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
+            <li key={item.product_id} className={`grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-2xl border border-[#E7EDE2] p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] ${completed ? "bg-[#FFFDF8]" : "bg-[#F7FAF4]"}`}>
               <div className="relative grid size-14 place-items-center overflow-hidden rounded-xl bg-white text-[#245C45]">
                 {image ? <Image src={image} alt="" fill sizes="56px" className="object-contain p-1" /> : <BookOpen size={22} aria-hidden="true" />}
               </div>
@@ -73,12 +82,12 @@ function Products({ order, productImages }: { order: Order; productImages: Recor
                 <h3 className="wrap-break-word text-sm font-bold">{item.product_name}</h3>
                 <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[#4A5568]">
                   <span className="rounded-md bg-[#E8F1DD] px-1.5 py-0.5 text-[#245C45]">×{item.quantity}</span>
-                  <span>Đơn giá: {money.format(item.unit_price_vnd)}</span>
+                  <span>Đơn giá: {price(item.unit_price_vnd)}</span>
                 </p>
               </div>
               <div className="col-start-2 sm:col-start-auto sm:text-right">
                 <p className="text-xs text-[#4A5568]">Thành tiền</p>
-                <p className="font-bold text-[#245C45]">{money.format(item.unit_price_vnd * item.quantity)}</p>
+                <p className="font-bold text-[#245C45]">{price(item.unit_price_vnd * item.quantity)}</p>
               </div>
             </li>
           );
@@ -89,7 +98,7 @@ function Products({ order, productImages }: { order: Order; productImages: Recor
   );
 }
 
-function Shipping({ order }: { order: Order }) {
+function Shipping({ order, completed = false }: { order: Order; completed?: boolean }) {
   const fields = [
     { label: "Người nhận", value: order.recipient_name, icon: UserRound },
     { label: "Số điện thoại", value: order.recipient_phone, icon: Phone },
@@ -97,7 +106,7 @@ function Shipping({ order }: { order: Order }) {
   ];
 
   return (
-    <section aria-labelledby="order-shipping" className={card}>
+    <section aria-labelledby="order-shipping" className={completed ? completedOrderCardClass : card}>
       <h2 id="order-shipping" className="flex items-center gap-2 border-b border-[#E7EDE2] pb-4 text-base font-bold">
         <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#E8F1DD] text-[#245C45]"><MapPin size={16} aria-hidden="true" /></span>
         Thông tin nhận hàng
@@ -115,7 +124,101 @@ function Shipping({ order }: { order: Order }) {
   );
 }
 
-export default function OrderDetail({ id, productImages }: { id: string; productImages: Record<string, string> }) {
+function OrderCompletion({ order, productImages, copied, onCopy }: {
+  order: Order;
+  productImages: Record<string, string>;
+  copied: string;
+  onCopy: () => void;
+}) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { headingRef.current?.focus(); }, []);
+
+  const shortId = order.id.slice(0, 8).toUpperCase();
+  const subtotal = order.order_items.length
+    ? order.order_items.reduce((sum, item) => sum + item.quantity * item.unit_price_vnd, 0)
+    : order.total_vnd;
+  const steps = [
+    { label: "Đặt hàng", detail: dateTime.format(new Date(order.created_at)), icon: Check, done: true, current: false },
+    { label: "Thanh toán", detail: "Đã thanh toán", icon: Check, done: true, current: false },
+    { label: "Hoàn tất", detail: order.paid_at ? dateTime.format(new Date(order.paid_at)) : "Đã hoàn tất thanh toán", icon: Check, done: true, current: true },
+  ];
+  return (
+    <main className={orderPageClass}>
+      <header className="mx-auto max-w-[720px] pt-6 text-center sm:pt-8">
+        <div aria-hidden="true" className="relative mx-auto grid size-24 place-items-center rounded-full bg-[#E8F1DD] text-[#245C45]">
+          <Check size={42} strokeWidth={2.5} />
+          <span className="absolute -top-2 -left-3 size-3 rounded-full bg-[#BFD2B7]" />
+          <span className="absolute -top-3 right-5 size-1.5 rounded-full bg-[#F58220]" />
+          <span className="absolute top-1 -right-4 size-2.5 rounded-full bg-[#F58220]" />
+          <span className="absolute bottom-2 -left-4 size-2 rounded-full bg-[#BFD2B7]" />
+          <span className="absolute -right-2 -bottom-2 size-3.5 rounded-full bg-[#E8F1DD]" />
+        </div>
+        <p className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#E8F1DD] px-3 py-1 text-xs font-bold text-[#245C45]">
+          <span aria-hidden="true">●</span> ĐẶT HÀNG THÀNH CÔNG
+        </p>
+        <h1 ref={headingRef} tabIndex={-1} className="mt-4 text-3xl leading-tight font-bold tracking-tight focus:outline-none sm:text-5xl">
+          Cảm ơn bạn đã đặt hàng tại Bloomie!
+        </h1>
+        <p className="mx-auto mt-4 max-w-[560px] text-base leading-7 text-[#4A5568]">
+          Chúng tôi đã nhận được đơn hàng của bạn và sẽ sớm liên hệ để xác nhận giao hàng.
+        </p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <button type="button" onClick={onCopy} aria-label={`Sao chép mã đơn ${shortId}`} className={`${pill} border border-[#DCE8D5] bg-white hover:bg-[#F5F8F1] active:bg-[#E8F1DD]`}>
+            <span>Mã đơn: <strong>#{shortId}</strong></span>
+            <Copy size={14} aria-hidden="true" />
+          </button>
+          <p className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#E8F1DD] px-4 py-2 text-sm font-semibold text-[#245C45]">
+            <Check size={15} aria-hidden="true" /> Trạng thái: Đã thanh toán giả lập
+          </p>
+        </div>
+        <p role="status" className={copied ? "mt-2 text-sm text-[#245C45]" : "sr-only"}>{copied}</p>
+      </header>
+
+      <OrderSteps
+        label="Tiến trình đơn hàng"
+        steps={steps}
+        nextStep={<>Bước tiếp theo: <strong className="text-[#1F3D33]">Bloomie xác nhận và chuẩn bị đơn hàng của bạn.</strong></>}
+      />
+
+      <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div className="grid min-w-0 gap-6">
+          <Products order={order} productImages={productImages} completed />
+          <Shipping order={order} completed />
+        </div>
+        <section aria-labelledby="completed-order-payment" className="min-w-0 rounded-[32px] border border-[#E2EBDD] bg-[#E8F1DD] p-5 shadow-sm sm:p-8">
+          <h2 id="completed-order-payment" className="text-xl font-bold">Tóm tắt thanh toán</h2>
+          <dl className="mt-6 space-y-3 text-sm">
+            <div className="flex justify-between gap-4"><dt className="text-[#4A5568]">Tạm tính</dt><dd className="font-semibold">{price(subtotal)}</dd></div>
+            <div className="flex justify-between gap-4"><dt className="text-[#4A5568]">Phí vận chuyển</dt><dd className="font-semibold">Miễn phí</dd></div>
+            <div className="flex justify-between gap-4"><dt className="text-[#4A5568]">Giảm giá</dt><dd className="font-semibold">{price(0)}</dd></div>
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-[#CBDCC2] pt-4">
+              <dt className="font-bold">Tổng tiền thanh toán</dt>
+              <dd className="text-[32px] leading-tight font-bold text-[#245C45]">{price(order.total_vnd)}</dd>
+            </div>
+            <div className="flex justify-between gap-4 text-xs">
+              <dt className="text-[#4A5568]">Phương thức:</dt><dd className="font-semibold">Ví giả lập</dd>
+            </div>
+          </dl>
+          <div className="mt-6 grid gap-3">
+            <Link href={`/don-hang/${order.id}`} className={`${pill} min-h-12 w-full bg-[#245C45] text-white hover:bg-[#1C4B38] active:bg-[#163D2E]`}>
+              Xem chi tiết đơn hàng <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+            <Link href="/san-pham" className={`${pill} min-h-12 w-full border border-[#BFD2B7] bg-white text-[#245C45] hover:bg-[#F5F8F1] active:bg-[#E8F1DD]`}>
+              Tiếp tục khám phá sản phẩm
+            </Link>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+export default function OrderDetail({ id, productImages, showCompletion }: {
+  id: string;
+  productImages: Record<string, string>;
+  showCompletion: boolean;
+}) {
+  const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
   const [message, setMessage] = useState("Đang tải đơn hàng…");
   const [needsLogin, setNeedsLogin] = useState(false);
@@ -140,12 +243,12 @@ export default function OrderDetail({ id, productImages }: { id: string; product
           setMessage("Hãy đăng nhập bằng tài khoản đã đặt đơn.");
           return;
         }
-        const { data, error } = await supabase
-          .from("orders")
-          .select("id,created_at,status,total_vnd,recipient_name,recipient_phone,shipping_address,order_items(product_id,product_name,quantity,unit_price_vnd)")
-          .eq("id", id)
-          .eq("user_id", user.id)
-          .maybeSingle();
+        const findOrder = (fields: string) => supabase.from("orders").select(fields)
+          .eq("id", id).eq("user_id", user.id).maybeSingle<Order>();
+        let { data, error } = await findOrder(`paid_at,${orderFields}`);
+        if (error?.code === "42703") {
+          ({ data, error } = await findOrder(orderFields));
+        }
         if (error) throw error;
         if (!active) return;
         setOrder(data);
@@ -163,7 +266,7 @@ export default function OrderDetail({ id, productImages }: { id: string; product
 
     void loadOrder();
     return () => { active = false; };
-  }, [id]);
+  }, [id, showCompletion]);
 
   async function submitAction(action: "pay" | "cancel") {
     if (actionInProgress.current || order?.status !== "pending_payment") return;
@@ -182,6 +285,7 @@ export default function OrderDetail({ id, productImages }: { id: string; product
       if (action === "pay") setBalance(Number(data));
       setOrder((current) => current && { ...current, status: action === "pay" ? "paid_simulated" : "cancelled" });
       setConfirmCancel(false);
+      if (action === "pay") router.replace(`/don-hang/${id}?hoan-tat=1`);
     } catch {
       setActionError("Kết nối bị gián đoạn. Bạn thử lại nhé.");
     } finally {
@@ -193,7 +297,7 @@ export default function OrderDetail({ id, productImages }: { id: string; product
   async function copyOrder() {
     try {
       await navigator.clipboard.writeText(id);
-      setCopied("Đã sao chép mã đơn");
+      setCopied("Đã sao chép");
     } catch {
       setCopied("Chưa sao chép được mã đơn");
     }
@@ -205,6 +309,10 @@ export default function OrderDetail({ id, productImages }: { id: string; product
   const shortId = order?.id.slice(0, 8).toUpperCase();
   const subtotal = order?.order_items.reduce((sum, item) => sum + item.quantity * item.unit_price_vnd, 0);
   const shortfall = order && balance !== null ? Math.max(0, order.total_vnd - balance) : 0;
+
+  if (showCompletion && order?.status === "paid_simulated") {
+    return <Storefront><OrderCompletion order={order} productImages={productImages} copied={copied} onCopy={copyOrder} /></Storefront>;
+  }
 
   return (
     <Storefront>
@@ -246,12 +354,12 @@ export default function OrderDetail({ id, productImages }: { id: string; product
                   {!!order.order_items.length && (
                     <div className="flex justify-between gap-3 text-[#4A5568]">
                       <dt>Tạm tính ({order.order_items.length} món)</dt>
-                      <dd className="font-semibold text-[#1F3D33]">{money.format(subtotal ?? 0)}</dd>
+                      <dd className="font-semibold text-[#1F3D33]">{price(subtotal ?? 0)}</dd>
                     </div>
                   )}
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#CBDCC2] pt-4">
                     <dt className="font-bold">Tổng tiền thanh toán</dt>
-                    <dd className="font-display text-2xl font-extrabold text-[#245C45]">{money.format(order.total_vnd)}</dd>
+                    <dd className="text-2xl font-bold text-[#245C45]">{price(order.total_vnd)}</dd>
                   </div>
                 </dl>
 
@@ -261,7 +369,7 @@ export default function OrderDetail({ id, productImages }: { id: string; product
                       <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#E8F1DD] text-[#245C45]"><Wallet size={17} aria-hidden="true" /></span>
                       <div className="flex-1">
                         <p className="text-xs font-semibold uppercase text-[#4A5568]">Số dư ví giả lập</p>
-                        <p className="mt-1 text-sm font-bold">{balance === null ? "Chưa xác định" : money.format(balance)}</p>
+                        <p className="mt-1 text-sm font-bold">{balance === null ? "Chưa xác định" : price(balance)}</p>
                       </div>
                       {shortfall > 0 && <span className="rounded-full bg-[#FDECE9] px-2 py-1 text-xs font-semibold text-[#A72B23]">Không đủ</span>}
                     </div>
@@ -271,7 +379,7 @@ export default function OrderDetail({ id, productImages }: { id: string; product
                     {shortfall > 0 && (
                       <div className="rounded-2xl border border-[#F4C8C3] bg-[#FDECE9] p-3 text-sm text-[#922820]">
                         <p className="font-bold">Số dư ví giả lập không đủ</p>
-                        <p className="mt-1 leading-relaxed">Bạn còn thiếu {money.format(shortfall)}. Hãy liên hệ quản trị viên để được cộng số dư thử nghiệm.</p>
+                        <p className="mt-1 leading-relaxed">Bạn còn thiếu {price(shortfall)}. Hãy liên hệ quản trị viên để được cộng số dư thử nghiệm.</p>
                       </div>
                     )}
                     <p className="text-center text-xs leading-relaxed text-[#4A5568]">Thanh toán thử nghiệm bằng ví Bloomie.</p>
