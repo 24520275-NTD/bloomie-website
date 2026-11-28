@@ -182,7 +182,7 @@ export default function BloomieHome({
 
         <section
           id="san-pham"
-          className="bg-[#f6f4ec] pt-6 pb-12 md:pt-8 md:pb-16 lg:grid lg:min-h-svh lg:py-8"
+          className="bg-[#e8f1dd] pt-6 pb-12 md:pt-8 md:pb-16 lg:grid lg:min-h-svh lg:py-8"
         >
           <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8 lg:grid lg:grid-rows-[auto_1fr_auto] lg:gap-6">
             <div className="mb-6 text-center lg:mb-0">
