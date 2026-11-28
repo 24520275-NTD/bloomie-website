@@ -4,6 +4,14 @@ import { ArrowLeft, BadgeCheck, BookOpen, CalendarDays, Check, Clock, Copy, MapP
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import {
+  orderCardClass as card,
+  orderColumnsClass,
+  orderPageClass,
+  orderPillClass as pill,
+  OrderSteps,
+  orderSummaryClass,
+} from "../../components/order-layout";
 import Storefront from "../../components/storefront";
 import { createClient, hasSupabaseConfig } from "../../lib/supabase-browser";
 
@@ -28,8 +36,6 @@ const statuses = {
   paid_simulated: { label: "Đã thanh toán giả lập", icon: Check, style: "bg-[#DCF4E8] text-[#245C45]" },
   cancelled: { label: "Đã hủy", icon: X, style: "bg-[#FDECE9] text-[#A72B23]" },
 } as const;
-const card = "rounded-3xl border border-[#E2EBDD] bg-white p-5 shadow-sm sm:p-6";
-const pill = "inline-flex min-h-10 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245C45]";
 
 function OrderProgress({ order }: { order: Order }) {
   const pending = order.status === "pending_payment";
@@ -42,20 +48,7 @@ function OrderProgress({ order }: { order: Order }) {
     { label: "Hoàn tất", detail: "Chưa có thông tin", icon: BadgeCheck, done: false, current: false },
   ];
 
-  return (
-    <ol aria-label="Tiến trình đơn hàng" className={`${card} mt-6 grid grid-cols-2 gap-y-5 text-center sm:grid-cols-4`}>
-      {steps.map(({ label, detail, icon: Icon, done, current }, index) => (
-        <li key={label} aria-current={current ? "step" : undefined} className="relative flex min-w-0 flex-col items-center px-1">
-          {index > 0 && <span aria-hidden="true" className={`absolute top-5 right-1/2 hidden w-full border-t sm:block ${done || current ? "border-[#245C45]" : "border-dashed border-[#BFD2B7]"}`} />}
-          <span className={`relative z-10 grid size-10 place-items-center rounded-full border-2 border-[#E8F1DD] ${done || current ? "bg-[#245C45] text-white" : "bg-[#F5F8F1] text-[#4A5568]"}`}>
-            <Icon size={18} aria-hidden="true" />
-          </span>
-          <span className="mt-2 text-sm font-bold">{label}</span>
-          <span className={`mt-1 text-xs ${current ? "text-[#754204]" : "text-[#4A5568]"}`}>{detail}</span>
-        </li>
-      ))}
-    </ol>
-  );
+  return <OrderSteps label="Tiến trình đơn hàng" steps={steps} />;
 }
 
 function Products({ order, productImages }: { order: Order; productImages: Record<string, string> }) {
@@ -216,7 +209,7 @@ export default function OrderDetail({ id, productImages }: { id: string; product
 
   return (
     <Storefront>
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6">
+      <main className={orderPageClass}>
         <header>
           <p className="inline-flex rounded-full bg-[#E8F1DD] px-3 py-1 text-xs font-bold text-[#245C45]"><span aria-hidden="true" className="mr-2">●</span> ĐƠN HÀNG TRỰC TUYẾN</p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Chi tiết đơn hàng</h1>
@@ -242,13 +235,13 @@ export default function OrderDetail({ id, productImages }: { id: string; product
         {order && (
           <>
             <OrderProgress order={order} />
-            <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,10fr)_minmax(0,7fr)]">
+            <div className={orderColumnsClass}>
               <div className="grid min-w-0 gap-5">
                 <Products order={order} productImages={productImages} />
                 <Shipping order={order} />
               </div>
 
-              <aside aria-labelledby="order-payment" className="rounded-3xl border border-[#E2EBDD] bg-[#E8F1DD] p-5 shadow-sm sm:p-6">
+              <aside aria-labelledby="order-payment" className={orderSummaryClass}>
                 <h2 id="order-payment" className="text-xl font-bold">Tóm tắt thanh toán</h2>
                 <dl className="mt-4 text-sm">
                   {!!order.order_items.length && (
